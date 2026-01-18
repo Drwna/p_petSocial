@@ -1,0 +1,86 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "宠物社交圈",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录"
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "我的主页",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/post/create",
+			"style": {
+				"navigationBarTitleText": "发布帖子"
+			}
+		},
+		{
+			"path": "pages/post/detail",
+			"style": {
+				"navigationBarTitleText": "帖子详情"
+			}
+		},
+		{
+			"path": "pages/user/edit",
+			"style": {
+				"navigationBarTitleText": "编辑资料"
+			}
+		},
+		{
+			"path": "pages/follow/list",
+			"style": {
+				"navigationBarTitleText": "关注列表"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "宠物社交圈",
+		"navigationBarBackgroundColor": "#FF9800",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#FF9800",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/post/create",
+				"text": "发布",
+				"iconPath": "static/tabbar/plus.png",
+				"selectedIconPath": "static/tabbar/plus-active.png"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"text": "我的",
+				"iconPath": "static/tabbar/user.png",
+				"selectedIconPath": "static/tabbar/user-active.png"
+			}
+		]
+	}
+}
