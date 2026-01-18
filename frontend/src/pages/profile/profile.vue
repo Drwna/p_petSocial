@@ -38,8 +38,8 @@
     <view class="post-section">
       <view class="section-title">我的动态</view>
       <view class="post-list">
-        <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
-          @like="handleLike(post)" />
+        <post-card v-for="post in posts" :key="post.id" :post="post" :show-delete="true" @click="goDetail(post.id)"
+          @like="handleLike(post)" @deleted="onPostDeleted" />
         <view v-if="posts.length === 0" class="empty">还没有发布过帖子哦</view>
       </view>
     </view>
@@ -117,6 +117,11 @@ const handleLike = async (post) => {
   } catch (e) {
     console.error(e);
   }
+};
+
+const onPostDeleted = (postId) => {
+  posts.value = posts.value.filter(p => p.id !== postId);
+  postCount.value = Math.max(0, postCount.value - 1);
 };
 
 const calculateAge = (birthday) => {

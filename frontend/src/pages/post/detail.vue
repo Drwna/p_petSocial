@@ -60,7 +60,7 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus } from '@/api/index';
+import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deletePost } from '@/api/index';
 
 const post = ref(null);
 const comments = ref([]);

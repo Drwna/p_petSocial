@@ -6,6 +6,10 @@
         <text class="name">{{ post.pet.petName }}</text>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
+      <!-- 删除按钮 -->
+      <view class="delete-btn" v-if="isSelf && showDelete" @click.stop="handleDelete">
+        <image src="/static/delete.svg" class="delete-icon" />
+      </view>
     </view>
 
     <view class="post-content">
@@ -31,11 +35,25 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+import { deletePost } from '@/api/index';
+
 const props = defineProps({
   post: {
     type: Object,
     required: true
+  },
+  showDelete: {
+    type: Boolean,
+    default: false
   }
+});
+
+const emit = defineEmits(['click', 'like', 'deleted']);
+
+const isSelf = computed(() => {
+  const userInfo = uni.getStorageSync('userInfo');
+  return userInfo && props.post.pet && userInfo.id === props.post.pet.id;
 });
 
 const formatTime = (time) => {
@@ -48,6 +66,25 @@ const previewImage = (index) => {
   uni.previewImage({
     urls: props.post.images,
     current: index
+  });
+};
+
+const handleDelete = () => {
+  uni.showModal({
+    title: '提示',
+    content: '确定要删除这条帖子吗？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deletePost(props.post.id);
+          uni.showToast({ title: '删除成功', icon: 'none' });
+          emit('deleted', props.post.id);
+        } catch (e) {
+          uni.showToast({ title: '删除失败', icon: 'none' });
+          console.error(e);
+        }
+      }
+    }
   });
 };
 </script>
@@ -73,6 +110,7 @@ const previewImage = (index) => {
     }
 
     .info {
+      flex: 1;
       display: flex;
       flex-direction: column;
 
@@ -85,6 +123,14 @@ const previewImage = (index) => {
       .time {
         font-size: 24rpx;
         color: #999;
+      }
+    }
+
+    .delete-btn {
+      padding: 10rpx;
+      .delete-icon {
+        width: 36rpx;
+        height: 36rpx;
       }
     }
   }
