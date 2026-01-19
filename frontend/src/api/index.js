@@ -51,11 +51,25 @@ export const getPetProfile = (petId) => {
   });
 };
 
+export const getPetProfileById = (petId) => {
+  return request({
+    url: `/api/pet/profile/${petId}`,
+    method: 'GET'
+  });
+};
+
 export const getPetPosts = (data) => {
   return request({
     url: '/api/pet/posts',
     method: 'GET',
     data
+  });
+};
+
+export const getPetPostsById = (petId) => {
+  return request({
+    url: `/api/pet/${petId}/posts`,
+    method: 'GET'
   });
 };
 

@@ -27,6 +27,13 @@
 			}
 		},
 		{
+			"path": "pages/profile/other",
+			"style": {
+				"navigationBarTitleText": "用户主页",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/post/create",
 			"style": {
 				"navigationBarTitleText": "发布帖子"

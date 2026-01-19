@@ -1,8 +1,8 @@
 <template>
   <view class="post-card" @click="$emit('click')">
     <view class="post-header">
-      <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill" />
-      <view class="info">
+      <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill" @click.stop="goProfile" />
+      <view class="info" @click.stop="goProfile">
         <text class="name">{{ post.pet.petName }}</text>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
@@ -86,6 +86,14 @@ const handleDelete = () => {
       }
     }
   });
+};
+
+const goProfile = () => {
+  if (isSelf.value) {
+    uni.switchTab({ url: '/pages/profile/profile' });
+  } else {
+    uni.navigateTo({ url: `/pages/profile/other?id=${props.post.pet.id}` });
+  }
 };
 </script>
 
