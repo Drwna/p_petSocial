@@ -22,24 +22,52 @@
       </view>
     </scroll-view>
     
-    <!-- 帖子列表 -->
-    <view class="post-list">
-      <post-card 
-        v-for="post in posts" 
-        :key="post.id" 
-        :post="post" 
-        @click="goDetail(post.id)"
-        @like="handleLike(post)"
-      />
-      <view v-if="loading" class="loading">加载中...</view>
-      <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
-    </view>
+    <!-- 左右滑动切换内容 -->
+    <swiper class="content-swiper" :current="currentSwiperIndex" @change="onSwiperChange">
+      <!-- 全部 Tab 的内容 -->
+      <swiper-item>
+        <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
+          <view class="post-list">
+            <post-card 
+              v-for="post in posts" 
+              :key="post.id" 
+              :post="post" 
+              @click="goDetail(post.id)"
+              @like="handleLike(post)"
+            />
+            <view v-if="loading" class="loading">加载中...</view>
+            <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
+      <!-- 各个分类 Tab 的内容 -->
+      <swiper-item v-for="cat in categories" :key="cat.id">
+         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
+          <view class="post-list">
+             <!-- 这里为了演示简单，所有 swiper-item 共用 posts 数据，
+                  实际生产环境通常会为每个 Tab 维护独立的 list 数据以避免切换时闪烁或重新加载。
+                  但鉴于当前代码结构，切换 Tab 时会重新请求 loadPosts，所以共用一个 posts 也是可行的方案（切换时显示 loading）。
+             -->
+            <post-card 
+              v-for="post in posts" 
+              :key="post.id" 
+              :post="post" 
+              @click="goDetail(post.id)"
+              @like="handleLike(post)"
+            />
+            <view v-if="loading" class="loading">加载中...</view>
+            <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+    </swiper>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app';
+import { ref, onMounted, computed, watch } from 'vue';
+import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { getCategories, getPostList, likePost } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
@@ -50,6 +78,14 @@ const page = ref(1);
 const loading = ref(false);
 const hasMore = ref(true);
 
+// 计算当前 swiper 的 index
+// 0 对应 "全部"，1 对应 categories[0]，以此类推
+const currentSwiperIndex = computed(() => {
+    if (currentCategory.value === 0) return 0;
+    const index = categories.value.findIndex(c => c.id === currentCategory.value);
+    return index + 1;
+});
+
 onMounted(async () => {
   await loadCategories();
   // 初始加载
@@ -57,7 +93,7 @@ onMounted(async () => {
 });
 
 onShow(() => {
-    // 简单策略：如果列表空则加载，否则这里不主动刷新，依赖用户下拉
+    // 简单策略：如果列表空则加载
     if (posts.value.length === 0 && !loading.value) {
         loadPosts(true);
     }
@@ -69,12 +105,12 @@ onPullDownRefresh(() => {
   });
 });
 
-onReachBottom(() => {
+const onScrollToLower = () => {
   if (hasMore.value) {
     page.value++;
     loadPosts();
   }
-});
+};
 
 const loadCategories = async () => {
   try {
@@ -88,16 +124,43 @@ const loadCategories = async () => {
 const changeCategory = (id) => {
   if (currentCategory.value === id) return;
   currentCategory.value = id;
+  // loadPosts 会在 watch currentCategory 或者 swiper change 中触发吗？
+  // 由于 swiper :current 绑定了 currentSwiperIndex，修改 currentCategory 会导致 swiper 切换
+  // swiper 切换会触发 @change -> onSwiperChange
+  // 所以这里不需要手动调 loadPosts，除非 swiper change 没触发（例如点的是同一个？）
+  // 上面第一行已经判断了 id 不同。
+  
+  // 但是，如果仅仅修改 currentCategory，swiper 的 current 变了，会触发动画切换，
+  // 动画切换完成后触发 @change。
+  // 我们希望点击 Tab 立即开始加载数据，还是等滑过去再加载？
+  // 通常点击 Tab 立即加载体验更好。
   loadPosts(true);
 };
 
+const onSwiperChange = (e) => {
+    const index = e.detail.current;
+    let targetCatId = 0;
+    if (index === 0) {
+        targetCatId = 0;
+    } else {
+        targetCatId = categories.value[index - 1].id;
+    }
+    
+    if (currentCategory.value !== targetCatId) {
+        currentCategory.value = targetCatId;
+        loadPosts(true);
+    }
+};
+
 const loadPosts = async (refresh = false) => {
-  if (loading.value) return;
+  // 防止切换太快导致的数据错乱，可以加一个 cancel token 机制，这里简化处理
+  if (loading.value && !refresh) return; 
   loading.value = true;
   
   if (refresh) {
     page.value = 1;
     hasMore.value = true;
+    posts.value = []; // 清空，显示 loading
   }
   
   try {
@@ -109,8 +172,6 @@ const loadPosts = async (refresh = false) => {
     
     const list = res.data.list;
 
-    // 处理图片 URL，如果是相对路径可能需要拼接 BaseURL，这里假设是完整路径或者不需要
-    // 如果 images 是字符串，需要 parse
     list.forEach(item => {
         if (typeof item.images === 'string') {
             try {
@@ -143,8 +204,7 @@ const goDetail = (id) => {
 
 const handleLike = async (post) => {
   try {
-    await likePost(post.id); // 接口逻辑是 toggle
-    // 本地更新
+    await likePost(post.id);
     if (post.liked) {
         post.liked = false;
         post.likeCount--;
@@ -154,7 +214,6 @@ const handleLike = async (post) => {
     }
   } catch (e) {
     if (e.code === 401) {
-        // 未登录
         uni.showModal({
             title: '提示',
             content: '请先登录',
@@ -167,28 +226,30 @@ const handleLike = async (post) => {
     }
   }
 };
+
+const onPostDeleted = (postId) => {
+    posts.value = posts.value.filter(p => p.id !== postId);
+};
 </script>
 
 <style lang="scss">
 .container {
-  padding-top: 100rpx; 
-  min-height: 100vh;
+  /* 移除 padding-top，改用 flex 布局或者计算高度 */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: #f5f5f5;
+  overflow: hidden; /* 防止整体滚动 */
 }
 
 .category-tabs {
-  position: fixed;
-  top: 0; 
-  /* #ifdef H5 */
-  top: 44px;
-  /* #endif */
-  left: 0;
-  width: 100%;
+  /* 不再 fixed，作为 flex item */
   height: 90rpx;
   background-color: #fff;
   white-space: nowrap;
-  z-index: 100;
   box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+  flex-shrink: 0;
+  z-index: 10;
   
   .tab-item {
     display: inline-block;
@@ -218,8 +279,20 @@ const handleLike = async (post) => {
   }
 }
 
+.content-swiper {
+    flex: 1;
+    height: 0; /* 必须设置，配合 flex: 1 */
+    
+    .post-scroll {
+        height: 100%;
+    }
+}
+
 .post-list {
   padding: 20rpx;
+  /* 底部留出 tabbar 高度，防止被遮挡，或者 scroll-view 自动处理 */
+  padding-bottom: 40rpx; 
+
   .loading, .empty {
     text-align: center;
     padding: 40rpx;
