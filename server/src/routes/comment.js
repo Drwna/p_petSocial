@@ -50,7 +50,7 @@ router.get('/list', async (req, res) => {
     }
 
     const comments = await Comment.findAll({
-      where: { postId },
+      where: { postId, isDeleted: 0 },
       include: [
         {
           model: Pet,
@@ -72,6 +72,61 @@ router.get('/list', async (req, res) => {
     res.status(500).json({
       code: 500,
       msg: '获取评论列表失败',
+      error: error.message
+    });
+  }
+});
+
+// 删除评论
+router.post('/delete', auth, async (req, res) => {
+  try {
+    const { commentId } = req.body;
+    
+    if (!commentId) {
+      return res.status(400).json({
+        code: 400,
+        msg: '缺少commentId参数'
+      });
+    }
+
+    // 检查评论是否存在
+    const comment = await Comment.findOne({
+      where: { id: commentId, isDeleted: 0 },
+      include: [{ model: Post, as: 'post', attributes: ['id', 'petId'] }]
+    });
+    
+    if (!comment) {
+      return res.status(404).json({
+        code: 404,
+        msg: '评论不存在'
+      });
+    }
+
+    // 检查权限：要么是评论作者，要么是帖子作者
+    const isCommentAuthor = comment.petId === req.petId;
+    const isPostAuthor = comment.post.petId === req.petId;
+    
+    if (!isCommentAuthor && !isPostAuthor) {
+      return res.status(403).json({
+        code: 403,
+        msg: '无权删除该评论'
+      });
+    }
+
+    // 执行软删除
+    await comment.update({
+      isDeleted: 1,
+      deletedAt: new Date()
+    });
+
+    res.json({
+      code: 0,
+      msg: '删除评论成功'
+    });
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      msg: '删除评论失败',
       error: error.message
     });
   }

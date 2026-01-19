@@ -22,6 +22,14 @@ const Comment = sequelize.define('Comment', {
   createTime: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
+  },
+  isDeleted: {
+    type: DataTypes.TINYINT,
+    defaultValue: 0
+  },
+  deletedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'comment',

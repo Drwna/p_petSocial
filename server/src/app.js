@@ -32,8 +32,8 @@ app.use('/api/upload', uploadRoutes);
 // 初始化数据库
 const initDatabase = async () => {
   try {
-    // 创建数据库表，只在表不存在时创建，不删除现有表
-    await sequelize.sync({ force: false });
+    // 创建数据库表，如果表存在则修改表结构以匹配模型定义
+    await sequelize.sync({ alter: true });
     
     // 初始化分类数据, 只在表为空时初始化
     const categoryCount = await Category.count();
