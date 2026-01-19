@@ -33,13 +33,17 @@
       <view class="section-title">评论</view>
       <view class="comment-list">
         <view class="comment-item" v-for="comment in comments" :key="comment.id">
-          <image class="c-avatar" :src="comment.pet.avatar" />
+          <image class="c-avatar" :src="comment.pet.avatar" @click="goUserProfile(comment.pet.id)" />
           <view class="c-content">
             <view class="c-header">
-              <text class="c-name">{{ comment.pet.petName }}</text>
+              <text class="c-name" @click="goUserProfile(comment.pet.id)">{{ comment.pet.petName }}</text>
               <text class="c-time">{{ formatTime(comment.createTime) }}</text>
             </view>
             <text class="c-text">{{ comment.content }}</text>
+          </view>
+          <!-- 评论删除按钮：如果是自己的评论 或者 是帖子作者 -->
+          <view class="c-action" v-if="canDeleteComment(comment)" @click="handleDeleteComment(comment)">
+             <text class="delete-text">删除</text>
           </view>
         </view>
         <view v-if="comments.length === 0" class="empty">暂无评论，快来抢沙发</view>
@@ -60,7 +64,7 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
-import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deletePost } from '@/api/index';
+import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment } from '@/api/index';
 
 const post = ref(null);
 const comments = ref([]);
@@ -166,8 +170,50 @@ const goProfile = () => {
   if (isSelf.value) {
     uni.switchTab({ url: '/pages/profile/profile' });
   } else {
-    uni.navigateTo({ url: `/pages/profile/other?id=${post.value.petId}` });
+    uni.navigateTo({ url: `/pages/profile/other?id=${post.value.pet.id}` });
   }
+};
+
+const goUserProfile = (userId) => {
+  const currentUser = uni.getStorageSync('userInfo');
+  if (currentUser && currentUser.id === userId) {
+      uni.switchTab({ url: '/pages/profile/profile' });
+  } else {
+      uni.navigateTo({ url: `/pages/profile/other?id=${userId}` });
+  }
+};
+
+const canDeleteComment = (comment) => {
+    const userInfo = uni.getStorageSync('userInfo');
+    if (!userInfo) return false;
+    // 1. 自己的评论
+    if (comment.pet.id === userInfo.id) return true;
+    // 2. 我是帖子作者，有权删除帖子下的任何评论
+    if (post.value && post.value.pet.id === userInfo.id) return true;
+    
+    return false;
+};
+
+const handleDeleteComment = (comment) => {
+    uni.showModal({
+        title: '提示',
+        content: '确定要删除这条评论吗？',
+        success: async (res) => {
+            if (res.confirm) {
+                try {
+                    await deleteComment(comment.id);
+                    uni.showToast({ title: '删除成功' });
+                    // 刷新评论列表
+                    loadComments(post.value.id);
+                    // 更新评论数
+                    post.value.commentCount = Math.max(0, post.value.commentCount - 1);
+                } catch(e) {
+                    console.error(e);
+                    uni.showToast({ title: '删除失败', icon: 'none' });
+                }
+            }
+        }
+    });
 };
 </script>
 
@@ -301,6 +347,18 @@ const goProfile = () => {
           font-size: 28rpx;
           color: #333;
         }
+      }
+
+      .c-action {
+          display: flex;
+          align-items: center;
+          padding-left: 20rpx;
+          
+          .delete-text {
+              font-size: 24rpx;
+              color: #999;
+              padding: 10rpx;
+          }
       }
     }
 

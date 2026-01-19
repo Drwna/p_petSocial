@@ -130,6 +130,14 @@ export const createComment = (data) => {
   });
 };
 
+export const deleteComment = (commentId) => {
+  return request({
+    url: '/api/comment/delete',
+    method: 'POST',
+    data: { commentId }
+  });
+};
+
 export const getCommentList = (postId) => {
   return request({
     url: '/api/comment/list',

@@ -109,7 +109,7 @@ router.get('/list', async (req, res) => {
     // 获取每个帖子的点赞数和评论数
     const postsWithCounts = await Promise.all(posts.map(async (post) => {
       const likeCount = await PostLike.count({ where: { postId: post.id } });
-      const commentCount = await Comment.count({ where: { postId: post.id } });
+      const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
 
       return {
         ...post.toJSON(),
@@ -167,7 +167,7 @@ router.get('/:id', async (req, res) => {
 
     // 获取点赞数和评论数
     const likeCount = await PostLike.count({ where: { postId: post.id } });
-    const commentCount = await Comment.count({ where: { postId: post.id } });
+    const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
 
     // 检查当前宠物是否已点赞
     let liked = false;
