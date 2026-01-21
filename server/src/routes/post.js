@@ -1,6 +1,8 @@
 const express = require('express');
-const { Post, Pet, Category, PostLike, Comment } = require('../models');
+const { Post, Pet, Category, PostLike, Comment, Follow } = require('../models');
 const auth = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const router = express.Router();
 
@@ -106,15 +108,48 @@ router.get('/list', async (req, res) => {
       offset: offset
     });
 
-    // 获取每个帖子的点赞数和评论数
+    // 获取当前用户ID (如果已登录)
+    let currentPetId = null;
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        currentPetId = decoded.petId;
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // 获取每个帖子的点赞数、评论数、点赞状态和关注状态
     const postsWithCounts = await Promise.all(posts.map(async (post) => {
       const likeCount = await PostLike.count({ where: { postId: post.id } });
       const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
+      
+      let liked = false;
+      let isFollowing = false;
+
+      if (currentPetId) {
+        // 检查点赞状态
+        const postLike = await PostLike.findOne({
+          where: { postId: post.id, petId: currentPetId }
+        });
+        liked = !!postLike;
+
+        // 检查关注状态 (不是自己)
+        if (post.petId !== currentPetId) {
+          const follow = await Follow.findOne({
+            where: { followerPetId: currentPetId, followingPetId: post.petId }
+          });
+          isFollowing = !!follow;
+        }
+      }
 
       return {
         ...post.toJSON(),
         likeCount,
-        commentCount
+        commentCount,
+        liked,
+        isFollowing
       };
     }));
     

@@ -6,6 +6,12 @@
         <text class="name">{{ post.pet.petName }}</text>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
+      
+      <!-- 关注按钮 -->
+      <view class="follow-btn" v-if="!isSelf" @click.stop="handleFollowAction" :class="{ followed: isFollowing }">
+        {{ isFollowing ? '已关注' : '关注' }}
+      </view>
+
       <!-- 删除按钮 -->
       <view class="delete-btn" v-if="isSelf && showDelete" @click.stop="handleDelete">
         <image src="/static/delete.svg" class="delete-icon" />
@@ -24,7 +30,7 @@
     <view class="post-footer">
       <view class="action" @click.stop="$emit('like')">
         <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
-        <text class="count">{{ post.likeCount || 0 }}</text>
+        <text class="count" :class="{ active: post.liked }">{{ post.likeCount || 0 }}</text>
       </view>
       <view class="action">
         <text class="icon">💬</text>
@@ -35,8 +41,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { deletePost } from '@/api/index';
+import { computed, ref, watch } from 'vue';
+import { deletePost, followPet, unfollowPet } from '@/api/index';
 
 const props = defineProps({
   post: {
@@ -49,7 +55,13 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['click', 'like', 'deleted']);
+const emit = defineEmits(['click', 'like', 'deleted', 'follow-change']);
+
+const isFollowing = ref(props.post.isFollowing || false);
+
+watch(() => props.post.isFollowing, (val) => {
+  isFollowing.value = !!val;
+});
 
 const isSelf = computed(() => {
   const userInfo = uni.getStorageSync('userInfo');
@@ -60,6 +72,24 @@ const formatTime = (time) => {
   if (!time) return '';
   // 示例：2026-01-16T15:11:58.000Z
   return time.replace('T', ' ').replace('.000Z', '');
+};
+
+const handleFollowAction = async () => {
+  const targetId = props.post.pet.id;
+  try {
+    if (isFollowing.value) {
+      await unfollowPet(targetId);
+      isFollowing.value = false;
+      uni.showToast({ title: '已取消关注', icon: 'none' });
+    } else {
+      await followPet(targetId);
+      isFollowing.value = true;
+      uni.showToast({ title: '已关注', icon: 'none' });
+    }
+    emit('follow-change', { petId: targetId, isFollowing: isFollowing.value });
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 const previewImage = (index) => {
@@ -100,21 +130,23 @@ const goProfile = () => {
 <style lang="scss">
 .post-card {
   background-color: #fff;
-  margin-bottom: 20rpx;
-  padding: 30rpx;
-  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  padding: 32rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
 
   .post-header {
     display: flex;
     align-items: center;
-    margin-bottom: 20rpx;
+    margin-bottom: 24rpx;
 
     .avatar {
-      width: 80rpx;
-      height: 80rpx;
+      width: 88rpx;
+      height: 88rpx;
       border-radius: 50%;
-      margin-right: 20rpx;
-      background-color: #eee;
+      margin-right: 24rpx;
+      background-color: #f5f5f5;
+      border: 2rpx solid #fffbf0;
     }
 
     .info {
@@ -123,9 +155,10 @@ const goProfile = () => {
       flex-direction: column;
 
       .name {
-        font-size: 30rpx;
-        font-weight: bold;
+        font-size: 32rpx;
+        font-weight: 600;
         color: #333;
+        margin-bottom: 4rpx;
       }
 
       .time {
@@ -134,63 +167,95 @@ const goProfile = () => {
       }
     }
 
+    .follow-btn {
+      font-size: 24rpx;
+      height: 52rpx;
+      line-height: 52rpx;
+      background: linear-gradient(90deg, #FFB74D, #FF9800);
+      color: #fff;
+      padding: 0 24rpx;
+      border-radius: 26rpx;
+      font-weight: 600;
+      box-shadow: 0 4rpx 10rpx rgba(255, 152, 0, 0.2);
+      transition: all 0.3s;
+
+      &.followed {
+        background: #f5f5f5;
+        color: #999;
+        box-shadow: none;
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+
     .delete-btn {
-      padding: 10rpx;
+      padding: 12rpx;
+      background-color: #f9f9f9;
+      border-radius: 50%;
+      
       .delete-icon {
-        width: 36rpx;
-        height: 36rpx;
+        width: 32rpx;
+        height: 32rpx;
+        display: block;
       }
     }
   }
 
   .post-content {
-    margin-bottom: 20rpx;
+    margin-bottom: 24rpx;
 
     .text {
       font-size: 30rpx;
       color: #333;
-      line-height: 1.5;
+      line-height: 1.6;
+      letter-spacing: 0.5rpx;
     }
   }
 
   .post-images {
     display: flex;
     flex-wrap: wrap;
-    margin-bottom: 20rpx;
+    margin-bottom: 24rpx;
+    gap: 12rpx; // 使用 gap 替代 margin
 
     .img {
-      width: 190rpx;
-      height: 190rpx;
-      margin-right: 8rpx;
-      margin-bottom: 8rpx;
-      border-radius: 8rpx;
+      // 动态计算宽度: (100% - gap * 2) / 3
+      width: calc((100% - 24rpx) / 3);
+      height: 220rpx;
+      border-radius: 12rpx;
       background-color: #f0f0f0;
-
-      &:nth-child(3n) {
-       // margin-right: 0;
-      }
     }
   }
 
   .post-footer {
     display: flex;
     justify-content: flex-end;
-    border-top: 1rpx solid #f5f5f5;
-    padding-top: 20rpx;
+    padding-top: 24rpx;
+    border-top: 1rpx solid #f9f9f9;
 
     .action {
       display: flex;
       align-items: center;
-      margin-left: 40rpx;
+      margin-left: 48rpx;
+      background-color: #f9f9f9;
+      padding: 8rpx 24rpx;
+      border-radius: 30rpx;
 
       .icon {
-        font-size: 36rpx;
-        margin-right: 10rpx;
+        font-size: 32rpx;
+        margin-right: 12rpx;
       }
 
       .count {
         font-size: 26rpx;
         color: #666;
+        font-weight: 500;
+        
+        &.active {
+          color: #ff4d4f;
+        }
       }
     }
   }

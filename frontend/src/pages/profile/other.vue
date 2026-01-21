@@ -39,7 +39,7 @@
       <view class="section-title">TA的动态</view>
       <view class="post-list">
         <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
-          @like="handleLike(post)" />
+          @like="handleLike(post)" @follow-change="onFollowChange" />
         <view v-if="posts.length === 0" class="empty">还没有发布过帖子哦</view>
       </view>
     </view>
@@ -90,6 +90,8 @@ const loadData = async () => {
           item.images = [];
         }
       }
+      // 初始化关注状态
+      item.isFollowing = isFollowing.value;
     });
 
   } catch (e) {
@@ -101,6 +103,8 @@ const checkFollowStatus = async () => {
     try {
         const res = await getFollowStatus(petId.value);
         isFollowing.value = res.data.isFollowing;
+        // 更新帖子列表的关注状态
+        posts.value.forEach(p => p.isFollowing = isFollowing.value);
     } catch(e) {
         console.error(e);
     }
@@ -111,6 +115,7 @@ const handleFollow = async () => {
         await followPet(petId.value);
         isFollowing.value = true;
         pet.value.fansCount = (pet.value.fansCount || 0) + 1;
+        posts.value.forEach(p => p.isFollowing = true);
         uni.showToast({ title: '已关注' });
     } catch(e) {
         console.error(e);
@@ -122,9 +127,20 @@ const handleUnfollow = async () => {
         await unfollowPet(petId.value);
         isFollowing.value = false;
         pet.value.fansCount = Math.max(0, (pet.value.fansCount || 0) - 1);
+        posts.value.forEach(p => p.isFollowing = false);
         uni.showToast({ title: '已取消关注' });
     } catch(e) {
         console.error(e);
+    }
+};
+
+const onFollowChange = ({ isFollowing: following }) => {
+    isFollowing.value = following;
+    posts.value.forEach(p => p.isFollowing = following);
+    if (following) {
+        pet.value.fansCount = (pet.value.fansCount || 0) + 1;
+    } else {
+        pet.value.fansCount = Math.max(0, (pet.value.fansCount || 0) - 1);
     }
 };
 
@@ -166,26 +182,44 @@ const calculateAge = (birthday) => {
 <style lang="scss">
 .container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #FFFBF0;
+  padding-bottom: 40rpx;
 }
 
 .profile-header {
   background-color: #fff;
-  padding: 40rpx;
-  margin-bottom: 20rpx;
+  margin: 24rpx;
+  padding: 40rpx 30rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.03);
+  position: relative;
+  overflow: hidden;
+
+  // 增加顶部装饰条
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 12rpx;
+    background: linear-gradient(90deg, #FFB74D, #FF9800);
+  }
 
   .user-info {
     width: 100%;
     display: flex;
     align-items: center;
-    margin-bottom: 40rpx;
+    margin-bottom: 48rpx;
 
     .avatar {
-      width: 120rpx;
-      height: 120rpx;
+      width: 140rpx;
+      height: 140rpx;
       border-radius: 50%;
-      margin-right: 30rpx;
-      background-color: #eee;
+      margin-right: 32rpx;
+      background-color: #f5f5f5;
+      border: 6rpx solid #fff;
+      box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
       flex-shrink: 0;
     }
 
@@ -195,40 +229,47 @@ const calculateAge = (birthday) => {
       .name-row {
         display: flex;
         align-items: center;
-        margin-bottom: 10rpx;
+        margin-bottom: 16rpx;
 
         .name {
-          font-size: 36rpx;
-          font-weight: bold;
+          font-size: 40rpx;
+          font-weight: 700;
           color: #333;
-          margin-right: 10rpx;
+          margin-right: 16rpx;
         }
 
         .gender-icon {
-          font-size: 30rpx;
-          color: #2196F3;
+          font-size: 28rpx;
+          color: #4FB3FF;
+          background-color: rgba(79, 179, 255, 0.1);
+          width: 40rpx;
+          height: 40rpx;
+          line-height: 40rpx;
+          text-align: center;
+          border-radius: 50%;
 
           &.female {
-            color: #E91E63;
+            color: #FF6B81;
+            background-color: rgba(255, 107, 129, 0.1);
           }
         }
 
         .age {
           flex-shrink: 0;
-          font-size: 24rpx;
-          color: #fff;
-          background-color: #FF9800;
-          padding: 2rpx 10rpx;
-          border-radius: 10rpx;
-          margin-left: 10rpx;
+          font-size: 22rpx;
+          color: #FF9800;
+          background-color: #FFF3E0;
+          padding: 4rpx 16rpx;
+          border-radius: 20rpx;
+          margin-left: 16rpx;
+          font-weight: 500;
         }
       }
 
       .intro {
-        flex-grow: 1;
         font-size: 26rpx;
-        color: #999;
-        word-break: break-word;
+        color: #888;
+        line-height: 1.4;
       }
     }
   }
@@ -236,7 +277,10 @@ const calculateAge = (birthday) => {
   .stats-row {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 40rpx;
+    margin-bottom: 48rpx;
+    padding: 20rpx 0;
+    background-color: #fffcf7;
+    border-radius: 24rpx;
 
     .stat-item {
       display: flex;
@@ -244,10 +288,10 @@ const calculateAge = (birthday) => {
       align-items: center;
 
       .num {
-        font-size: 32rpx;
-        font-weight: bold;
+        font-size: 36rpx;
+        font-weight: 700;
         color: #333;
-        margin-bottom: 5rpx;
+        margin-bottom: 8rpx;
       }
 
       .label {
@@ -262,18 +306,21 @@ const calculateAge = (birthday) => {
     justify-content: center;
 
     .btn {
-      width: 60%;
-      height: 70rpx;
-      line-height: 70rpx;
-      font-size: 28rpx;
-      border-radius: 35rpx;
+      width: 70%;
+      height: 80rpx;
+      line-height: 80rpx;
+      font-size: 30rpx;
+      border-radius: 40rpx;
+      font-weight: 600;
+      border: none;
       
       &.follow-btn {
-          background-color: #FF9800;
+          background: linear-gradient(90deg, #FFB74D, #FF9800);
           color: #fff;
+          box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.25);
       }
       &.followed-btn {
-          background-color: #eee;
+          background-color: #f5f5f5;
           color: #999;
       }
     }
@@ -282,21 +329,34 @@ const calculateAge = (birthday) => {
 
 .post-section {
   .section-title {
-    padding: 20rpx 30rpx;
-    font-size: 30rpx;
-    font-weight: bold;
+    padding: 24rpx 40rpx;
+    font-size: 32rpx;
+    font-weight: 700;
     color: #333;
-    background-color: #fff;
-    border-bottom: 1rpx solid #f0f0f0;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    
+    &::before {
+      content: '';
+      width: 8rpx;
+      height: 32rpx;
+      background-color: #FF9800;
+      border-radius: 4rpx;
+      margin-right: 16rpx;
+    }
   }
 
   .post-list {
-    padding: 20rpx;
+    padding: 0 24rpx;
 
     .empty {
       text-align: center;
-      padding: 60rpx;
+      padding: 80rpx;
       color: #999;
+      background-color: #fff;
+      border-radius: 24rpx;
+      margin-top: 20rpx;
     }
   }
 }

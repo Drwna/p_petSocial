@@ -220,25 +220,29 @@ const handleDeleteComment = (comment) => {
 <style lang="scss">
 .container {
   padding-bottom: 120rpx;
-  background-color: #f5f5f5;
+  background-color: #FFFBF0;
   min-height: 100vh;
 }
 
+// 详情页复用 PostCard 样式，但做微调
 .post-card {
   background-color: #fff;
-  padding: 30rpx;
-  margin-bottom: 20rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 24rpx;
+  border-radius: 0 0 32rpx 32rpx; // 只有底部圆角，顶部直角（沉浸感）
+  box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.03);
 
   .post-header {
     display: flex;
     align-items: center;
-    margin-bottom: 20rpx;
+    margin-bottom: 32rpx;
 
     .avatar {
-      width: 80rpx;
-      height: 80rpx;
+      width: 96rpx;
+      height: 96rpx;
       border-radius: 50%;
-      margin-right: 20rpx;
+      margin-right: 24rpx;
+      border: 2rpx solid #fffbf0;
     }
 
     .info {
@@ -247,8 +251,10 @@ const handleDeleteComment = (comment) => {
       flex-direction: column;
 
       .name {
-        font-weight: bold;
-        font-size: 30rpx;
+        font-weight: 700;
+        font-size: 34rpx;
+        color: #333;
+        margin-bottom: 6rpx;
       }
 
       .time {
@@ -259,33 +265,48 @@ const handleDeleteComment = (comment) => {
 
     .follow-btn {
       font-size: 24rpx;
-      height: 50rpx;
-      line-height: 50rpx;
-      background-color: #FF9800;
+      height: 56rpx;
+      line-height: 56rpx;
+      background: linear-gradient(90deg, #FFB74D, #FF9800);
       color: #fff;
-      padding: 0 30rpx;
-      border-radius: 25rpx;
+      padding: 0 36rpx;
+      border-radius: 28rpx;
+      font-weight: 600;
+      box-shadow: 0 4rpx 10rpx rgba(255, 152, 0, 0.2);
 
       &.followed {
-        background-color: #eee;
+        background: #f5f5f5;
         color: #999;
+        box-shadow: none;
       }
+    }
+    
+    .delete-btn {
+        padding: 12rpx;
+        margin-left: 16rpx;
+        .delete-icon {
+            width: 36rpx;
+            height: 36rpx;
+        }
     }
   }
 
   .post-content {
-    margin-bottom: 20rpx;
-    font-size: 32rpx;
-    line-height: 1.6;
+    margin-bottom: 32rpx;
+    font-size: 34rpx;
+    line-height: 1.8;
+    color: #333;
+    letter-spacing: 0.5rpx;
   }
 
   .post-images {
-    margin-bottom: 20rpx;
+    margin-bottom: 32rpx;
 
     .img {
       width: 100%;
-      border-radius: 8rpx;
-      margin-bottom: 10rpx;
+      border-radius: 16rpx;
+      margin-bottom: 16rpx;
+      box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
     }
   }
 
@@ -294,9 +315,14 @@ const handleDeleteComment = (comment) => {
     color: #999;
     display: flex;
     justify-content: flex-end;
+    padding-top: 20rpx;
+    border-top: 1rpx solid #f9f9f9;
 
     .stat {
       margin-left: 30rpx;
+      background-color: #f9f9f9;
+      padding: 6rpx 20rpx;
+      border-radius: 20rpx;
     }
   }
 }
@@ -304,24 +330,39 @@ const handleDeleteComment = (comment) => {
 .comment-section {
   background-color: #fff;
   padding: 30rpx;
+  margin: 0 24rpx;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.02);
 
   .section-title {
-    font-weight: bold;
-    margin-bottom: 20rpx;
-    font-size: 30rpx;
+    font-weight: 700;
+    margin-bottom: 30rpx;
+    font-size: 32rpx;
+    display: flex;
+    align-items: center;
+    
+    &::before {
+        content: '';
+        width: 8rpx;
+        height: 28rpx;
+        background-color: #FF9800;
+        border-radius: 4rpx;
+        margin-right: 16rpx;
+    }
   }
 
   .comment-list {
     .comment-item {
       display: flex;
-      margin-bottom: 30rpx;
+      margin-bottom: 40rpx;
 
       .c-avatar {
-        width: 70rpx;
-        height: 70rpx;
+        width: 80rpx;
+        height: 80rpx;
         border-radius: 50%;
-        margin-right: 20rpx;
+        margin-right: 24rpx;
         background-color: #eee;
+        flex-shrink: 0;
       }
 
       .c-content {
@@ -330,15 +371,16 @@ const handleDeleteComment = (comment) => {
         .c-header {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 10rpx;
+          margin-bottom: 12rpx;
 
           .c-name {
             font-size: 28rpx;
-            color: #666;
+            font-weight: 600;
+            color: #555;
           }
 
           .c-time {
-            font-size: 24rpx;
+            font-size: 22rpx;
             color: #ccc;
           }
         }
@@ -346,6 +388,11 @@ const handleDeleteComment = (comment) => {
         .c-text {
           font-size: 28rpx;
           color: #333;
+          line-height: 1.5;
+          background-color: #f9f9f9;
+          padding: 16rpx 24rpx;
+          border-radius: 0 24rpx 24rpx 24rpx; // 气泡样式
+          display: inline-block;
         }
       }
 
@@ -355,17 +402,20 @@ const handleDeleteComment = (comment) => {
           padding-left: 20rpx;
           
           .delete-text {
-              font-size: 24rpx;
+              font-size: 22rpx;
               color: #999;
               padding: 10rpx;
+              background-color: #f5f5f5;
+              border-radius: 8rpx;
           }
       }
     }
 
     .empty {
       text-align: center;
-      color: #999;
+      color: #ccc;
       padding: 40rpx;
+      font-size: 26rpx;
     }
   }
 }
@@ -375,28 +425,35 @@ const handleDeleteComment = (comment) => {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 100rpx;
+  height: 110rpx;
   background-color: #fff;
   display: flex;
   align-items: center;
   padding: 0 30rpx;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
   z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom); // 适配底部安全区
 
   .comment-input {
     flex: 1;
-    height: 70rpx;
+    height: 76rpx;
     background-color: #f5f5f5;
-    border-radius: 35rpx;
-    padding: 0 30rpx;
+    border-radius: 38rpx;
+    padding: 0 36rpx;
     font-size: 28rpx;
+    color: #333;
   }
 
   .action {
     margin-left: 30rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80rpx;
+    height: 80rpx;
 
     .icon {
-      font-size: 50rpx;
+      font-size: 56rpx;
     }
   }
 }

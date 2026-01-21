@@ -34,6 +34,7 @@
               :post="post" 
               @click="goDetail(post.id)"
               @like="handleLike(post)"
+              @follow-change="onFollowChange"
             />
             <view v-if="loading" class="loading">加载中...</view>
             <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
@@ -55,6 +56,7 @@
               :post="post" 
               @click="goDetail(post.id)"
               @like="handleLike(post)"
+              @follow-change="onFollowChange"
             />
             <view v-if="loading" class="loading">加载中...</view>
             <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
@@ -230,50 +232,55 @@ const handleLike = async (post) => {
 const onPostDeleted = (postId) => {
     posts.value = posts.value.filter(p => p.id !== postId);
 };
+
+const onFollowChange = ({ petId, isFollowing }) => {
+    posts.value.forEach(post => {
+        if (post.pet.id === petId) {
+            post.isFollowing = isFollowing;
+        }
+    });
+};
 </script>
 
 <style lang="scss">
 .container {
-  /* 移除 padding-top，改用 flex 布局或者计算高度 */
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
-  overflow: hidden; /* 防止整体滚动 */
+  background-color: #FFFBF0; // 暖米色背景
+  overflow: hidden;
 }
 
 .category-tabs {
-  /* 不再 fixed，作为 flex item */
-  height: 90rpx;
-  background-color: #fff;
+  height: 100rpx;
+  background-color: transparent; // 透明背景，融入页面
   white-space: nowrap;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
   flex-shrink: 0;
   z-index: 10;
+  padding: 0 20rpx;
+  box-sizing: border-box;
   
   .tab-item {
     display: inline-block;
-    padding: 0 30rpx;
-    line-height: 90rpx;
+    padding: 10rpx 32rpx;
+    margin-right: 20rpx;
+    margin-top: 20rpx; // 垂直居中微调
+    line-height: 1.5;
     font-size: 28rpx;
-    color: #666;
-    position: relative;
+    color: #999;
+    border-radius: 34rpx;
+    background-color: #fff;
+    transition: all 0.3s ease;
     
     &.active {
-      color: #FF9800;
-      font-weight: bold;
-      font-size: 30rpx;
+      color: #fff;
+      font-weight: 600;
+      background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
+      box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+      transform: scale(1.05);
       
       &::after {
-        content: '';
-        position: absolute;
-        bottom: 10rpx;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 40rpx;
-        height: 4rpx;
-        background-color: #FF9800;
-        border-radius: 2rpx;
+        display: none; // 移除下划线
       }
     }
   }
@@ -281,7 +288,7 @@ const onPostDeleted = (postId) => {
 
 .content-swiper {
     flex: 1;
-    height: 0; /* 必须设置，配合 flex: 1 */
+    height: 0;
     
     .post-scroll {
         height: 100%;
@@ -289,15 +296,22 @@ const onPostDeleted = (postId) => {
 }
 
 .post-list {
-  padding: 20rpx;
-  /* 底部留出 tabbar 高度，防止被遮挡，或者 scroll-view 自动处理 */
+  padding: 24rpx;
   padding-bottom: 40rpx; 
 
   .loading, .empty {
     text-align: center;
-    padding: 40rpx;
-    color: #999;
+    padding: 60rpx;
+    color: #ccc;
     font-size: 26rpx;
+    
+    // 增加空状态插图占位（文字描述）
+    &.empty::before {
+      content: '🐾';
+      display: block;
+      font-size: 64rpx;
+      margin-bottom: 20rpx;
+    }
   }
 }
 </style>

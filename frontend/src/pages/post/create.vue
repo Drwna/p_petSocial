@@ -127,68 +127,75 @@ const handleSubmit = async () => {
 <style lang="scss">
 .container {
   padding: 30rpx;
-  background-color: #fff;
+  background-color: #FFFBF0;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .content-input {
   width: 100%;
   height: 300rpx;
-  font-size: 30rpx;
-  line-height: 1.5;
-  margin-bottom: 30rpx;
+  font-size: 32rpx;
+  line-height: 1.6;
+  margin-bottom: 40rpx;
+  padding: 20rpx;
+  box-sizing: border-box;
+  background-color: transparent;
+  color: #333;
 }
 
 .image-list {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 40rpx;
+  margin-bottom: 60rpx;
+  gap: 20rpx;
   
   .image-item {
     position: relative;
-    width: 220rpx;
-    height: 220rpx;
-    margin-right: 15rpx;
-    margin-bottom: 15rpx;
-    
-    &:nth-child(3n) {
-      margin-right: 0;
-    }
+    width: 210rpx;
+    height: 210rpx;
+    // margin-right: 15rpx; margin-bottom: 15rpx; 使用 gap 代替
     
     .img {
       width: 100%;
       height: 100%;
-      border-radius: 8rpx;
+      border-radius: 20rpx;
+      box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.08);
     }
     
     .delete {
       position: absolute;
-      top: -10rpx;
-      right: -10rpx;
-      width: 40rpx;
-      height: 40rpx;
-      background-color: rgba(0,0,0,0.5);
+      top: -16rpx;
+      right: -16rpx;
+      width: 48rpx;
+      height: 48rpx;
+      background-color: #FF6B81;
       color: #fff;
       text-align: center;
-      line-height: 36rpx;
+      line-height: 44rpx; // 视觉修正
       border-radius: 50%;
-      font-size: 30rpx;
+      font-size: 32rpx;
+      border: 4rpx solid #fff;
+      box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
     }
   }
   
   .upload-btn {
-    width: 220rpx;
-    height: 220rpx;
-    background-color: #f8f8f8;
-    border: 2rpx dashed #ddd;
+    width: 210rpx;
+    height: 210rpx;
+    background-color: #fff;
+    border: 4rpx dashed #FFD180;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 8rpx;
+    border-radius: 20rpx;
+    box-sizing: border-box;
     
     .icon {
-      font-size: 60rpx;
-      color: #ccc;
+      font-size: 80rpx;
+      color: #FFD180;
+      font-weight: 300;
     }
   }
 }
@@ -197,13 +204,26 @@ const handleSubmit = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30rpx 0;
-  border-top: 1rpx solid #f5f5f5;
-  border-bottom: 1rpx solid #f5f5f5;
+  padding: 36rpx 30rpx;
+  background-color: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.03);
+  margin-bottom: 40rpx;
   
   .label {
     font-size: 30rpx;
     color: #333;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    
+    &::before {
+      content: '#';
+      color: #FF9800;
+      font-size: 36rpx;
+      margin-right: 10rpx;
+      font-weight: 800;
+    }
   }
   
   .value {
@@ -213,17 +233,28 @@ const handleSubmit = async () => {
     align-items: center;
     
     .arrow {
-      margin-left: 10rpx;
-      color: #999;
+      margin-left: 16rpx;
+      color: #ccc;
+      font-weight: 700;
     }
   }
 }
 
 .submit-btn {
-  margin-top: 60rpx;
-  height: 90rpx;
-  line-height: 90rpx;
-  border-radius: 45rpx;
-  font-size: 32rpx;
+  margin-top: auto; // 推到底部
+  margin-bottom: 40rpx;
+  height: 96rpx;
+  line-height: 96rpx;
+  border-radius: 48rpx;
+  font-size: 34rpx;
+  font-weight: 600;
+  background: linear-gradient(90deg, #FFB74D, #FF9800);
+  box-shadow: 0 8rpx 20rpx rgba(255, 152, 0, 0.3);
+  border: none;
+  
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
 }
 </style>
