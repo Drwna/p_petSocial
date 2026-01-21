@@ -177,10 +177,26 @@ const showSwitchAccount = () => {
         // 添加新账号
         uni.navigateTo({ url: '/pages/login/login' });
       } else {
-        // 退出
-        uni.removeStorageSync('token');
-        uni.removeStorageSync('userInfo');
-        uni.reLaunch({ url: '/pages/login/login' });
+        // 退出当前账号
+        const currentUser = uni.getStorageSync('userInfo');
+        let remainingAccounts = accounts.filter(acc => acc.pet.id !== currentUser.id);
+        
+        // 更新本地存储的账号列表
+        uni.setStorageSync('accounts', remainingAccounts);
+
+        if (remainingAccounts.length > 0) {
+          // 自动切换到下一个账号
+          const nextAccount = remainingAccounts[0];
+          uni.setStorageSync('token', nextAccount.token);
+          uni.setStorageSync('userInfo', nextAccount.pet);
+          loadData(); // 刷新页面数据
+          uni.showToast({ title: `已切换为 ${nextAccount.pet.petName}`, icon: 'none' });
+        } else {
+          // 无其他账号，清除所有登录信息并跳转登录页
+          uni.removeStorageSync('token');
+          uni.removeStorageSync('userInfo');
+          uni.reLaunch({ url: '/pages/login/login' });
+        }
       }
     }
   });
