@@ -6,6 +6,11 @@
     </view>
 
     <view class="form-item">
+      <text class="label">邮箱</text>
+      <input class="input" :value="form.email" disabled style="color: #999;" />
+    </view>
+
+    <view class="form-item">
       <text class="label">名称</text>
       <input class="input" v-model="form.petName" />
     </view>
@@ -46,6 +51,7 @@ const petTypes = [
 ];
 const loading = ref(false);
 const form = reactive({
+  email: '',
   petName: '',
   intro: '',
   petType: '',
@@ -60,7 +66,9 @@ onMounted(async () => {
   try {
     const res = await getCurrentUser();
     const data = res.data;
+    console.log('fuck',data)
     // 简单的属性赋值
+    form.email = data.email || '';
     form.petName = data.petName;
     form.intro = data.intro;
     form.petType = data.petType;

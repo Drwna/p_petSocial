@@ -189,7 +189,6 @@ router.post('/register', async (req, res) => {
 // 获取当前宠物信息
 router.get('/current', auth, async (req, res) => {
   try {
-
     const pet = await Pet.findByPk(req.petId);
     
     if (!pet) {
@@ -199,9 +198,15 @@ router.get('/current', auth, async (req, res) => {
       });
     }
 
+    // 获取关联的账号信息（邮箱）
+    const account = await Account.findOne({ where: { petId: req.petId } });
+
     res.json({
       code: 0,
-      data: pet
+      data: {
+        ...pet.toJSON(),
+        email: account ? account.email : ''
+      }
     });
   } catch (error) {
     res.status(500).json({
