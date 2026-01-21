@@ -66,10 +66,11 @@ export const getPetPosts = (data) => {
   });
 };
 
-export const getPetPostsById = (petId) => {
+export const getPetPostsById = (petId, data = {}) => {
   return request({
     url: `/api/pet/${petId}/posts`,
-    method: 'GET'
+    method: 'GET',
+    data
   });
 };
 
@@ -138,11 +139,14 @@ export const deleteComment = (commentId) => {
   });
 };
 
-export const getCommentList = (postId) => {
+export const getCommentList = (data) => {
+  if (typeof data !== 'object') {
+    data = { postId: data };
+  }
   return request({
     url: '/api/comment/list',
     method: 'GET',
-    data: { postId }
+    data
   });
 };
 

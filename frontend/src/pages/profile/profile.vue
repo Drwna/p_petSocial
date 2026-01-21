@@ -48,13 +48,17 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app';
+import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
 import { getPetProfile, getPetPosts, likePost } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
 const pet = ref({});
 const postCount = ref(0);
 const posts = ref([]);
+
+const page = ref(1);
+const hasMore = ref(true);
+const loading = ref(false);
 
 onShow(() => {
   loadData();
@@ -64,6 +68,13 @@ onPullDownRefresh(() => {
   loadData().then(() => {
     uni.stopPullDownRefresh();
   });
+});
+
+onReachBottom(() => {
+  if (hasMore.value) {
+    page.value++;
+    loadPosts();
+  }
 });
 
 const loadData = async () => {
@@ -93,11 +104,36 @@ const loadData = async () => {
       uni.setStorageSync('accounts', accounts);
     }
 
-    const postsRes = await getPetPosts({ petId: userInfo.id });
-    posts.value = postsRes.data.list || [];
+    await loadPosts(true);
+
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const loadPosts = async (refresh = false) => {
+  if (loading.value && !refresh) return;
+  loading.value = true;
+
+  if (refresh) {
+    page.value = 1;
+    hasMore.value = true;
+    posts.value = [];
+  }
+
+  const userInfo = uni.getStorageSync('userInfo');
+  if (!userInfo) return;
+
+  try {
+    const postsRes = await getPetPosts({ 
+        petId: userInfo.id,
+        page: page.value,
+        size: 10
+    });
+    const list = postsRes.data.list || [];
 
     // 处理图片 JSON 解析
-    posts.value.forEach(item => {
+    list.forEach(item => {
       if (typeof item.images === 'string') {
         try {
           item.images = JSON.parse(item.images);
@@ -107,8 +143,20 @@ const loadData = async () => {
       }
     });
 
+    if (refresh) {
+      posts.value = list;
+    } else {
+      posts.value = [...posts.value, ...list];
+    }
+    
+    if (list.length < 10) {
+      hasMore.value = false;
+    }
+
   } catch (e) {
     console.error(e);
+  } finally {
+    loading.value = false;
   }
 };
 

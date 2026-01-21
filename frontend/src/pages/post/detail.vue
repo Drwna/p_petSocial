@@ -63,7 +63,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
+import { onLoad, onReachBottom } from '@dcloudio/uni-app';
 import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment } from '@/api/index';
 
 const post = ref(null);
@@ -72,10 +72,21 @@ const commentContent = ref('');
 const isFollowing = ref(false);
 const isSelf = ref(false);
 
+const page = ref(1);
+const hasMore = ref(true);
+const loading = ref(false);
+
 onLoad((options) => {
   if (options.id) {
     loadPost(options.id);
-    loadComments(options.id);
+    loadComments(options.id, true);
+  }
+});
+
+onReachBottom(() => {
+  if (hasMore.value && post.value) {
+    page.value++;
+    loadComments(post.value.id);
   }
 });
 
@@ -106,14 +117,38 @@ const loadPost = async (id) => {
   }
 };
 
-const loadComments = async (id) => {
+const loadComments = async (id, refresh = false) => {
+  if (loading.value && !refresh) return;
+  loading.value = true;
+  
+  if (refresh) {
+    page.value = 1;
+    hasMore.value = true;
+    comments.value = [];
+  }
+
   try {
-    const res = await getCommentList(id);
-    // 假设 API 返回的结构是 { code: 0, data: { list: [] } } 或 { code: 0, data: [] }
-    // 根据文档，评论列表接口返回示例没给全，假设返回的是数组
-    comments.value = res.data.list || res.data || [];
+    const res = await getCommentList({
+        postId: id,
+        page: page.value,
+        size: 10
+    });
+    // 假设 API 返回的结构是 { code: 0, data: { list: [], total: ... } }
+    const list = res.data.list || res.data || [];
+    
+    if (refresh) {
+      comments.value = list;
+    } else {
+      comments.value = [...comments.value, ...list];
+    }
+    
+    if (list.length < 10) {
+      hasMore.value = false;
+    }
   } catch (e) {
     console.error(e);
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -154,7 +189,7 @@ const sendComment = async () => {
     await createComment({ postId: post.value.id, content: commentContent.value });
     commentContent.value = '';
     uni.showToast({ title: '评论成功' });
-    loadComments(post.value.id);
+    loadComments(post.value.id, true);
     post.value.commentCount++;
   } catch (e) { console.error(e); }
 };
@@ -204,7 +239,7 @@ const handleDeleteComment = (comment) => {
                     await deleteComment(comment.id);
                     uni.showToast({ title: '删除成功' });
                     // 刷新评论列表
-                    loadComments(post.value.id);
+                    loadComments(post.value.id, true);
                     // 更新评论数
                     post.value.commentCount = Math.max(0, post.value.commentCount - 1);
                 } catch(e) {

@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app';
+import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
 import { getPetProfileById, getPetPostsById, likePost, followPet, unfollowPet, getFollowStatus } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
@@ -57,6 +57,10 @@ const pet = ref({});
 const postCount = ref(0);
 const posts = ref([]);
 const isFollowing = ref(false);
+
+const page = ref(1);
+const hasMore = ref(true);
+const loading = ref(false);
 
 onLoad((options) => {
   if (options.id) {
@@ -72,31 +76,70 @@ onPullDownRefresh(() => {
   });
 });
 
+onReachBottom(() => {
+  if (hasMore.value) {
+    page.value++;
+    loadPosts();
+  }
+});
+
 const loadData = async () => {
   try {
     const profileRes = await getPetProfileById(petId.value);
     pet.value = profileRes.data.pet;
     postCount.value = profileRes.data.postCount;
 
-    const postsRes = await getPetPostsById(petId.value);
-    posts.value = postsRes.data.list || [];
-
-    // 处理图片 JSON 解析
-    posts.value.forEach(item => {
-      if (typeof item.images === 'string') {
-        try {
-          item.images = JSON.parse(item.images);
-        } catch (e) {
-          item.images = [];
-        }
-      }
-      // 初始化关注状态
-      item.isFollowing = isFollowing.value;
-    });
+    await loadPosts(true);
 
   } catch (e) {
     console.error(e);
   }
+};
+
+const loadPosts = async (refresh = false) => {
+    if (loading.value && !refresh) return;
+    loading.value = true;
+
+    if (refresh) {
+        page.value = 1;
+        hasMore.value = true;
+        posts.value = [];
+    }
+
+    try {
+        const postsRes = await getPetPostsById(petId.value, {
+            page: page.value,
+            size: 10
+        });
+        const list = postsRes.data.list || [];
+
+        // 处理图片 JSON 解析
+        list.forEach(item => {
+            if (typeof item.images === 'string') {
+                try {
+                    item.images = JSON.parse(item.images);
+                } catch (e) {
+                    item.images = [];
+                }
+            }
+            // 初始化关注状态
+            item.isFollowing = isFollowing.value;
+        });
+
+        if (refresh) {
+            posts.value = list;
+        } else {
+            posts.value = [...posts.value, ...list];
+        }
+
+        if (list.length < 10) {
+            hasMore.value = false;
+        }
+    } catch(e) {
+        console.error(e);
+    } finally {
+        loading.value = false;
+    }
 };
 
 const checkFollowStatus = async () => {

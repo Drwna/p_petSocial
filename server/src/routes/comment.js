@@ -40,7 +40,7 @@ router.post('/create', auth, async (req, res) => {
 // 获取评论列表
 router.get('/list', async (req, res) => {
   try {
-    const { postId } = req.query;
+    const { postId, page = 1, size = 10 } = req.query;
     
     if (!postId) {
       return res.status(400).json({
@@ -49,7 +49,9 @@ router.get('/list', async (req, res) => {
       });
     }
 
-    const comments = await Comment.findAll({
+    const offset = (page - 1) * size;
+
+    const { rows: comments, count } = await Comment.findAndCountAll({
       where: { postId, isDeleted: 0 },
       include: [
         {
@@ -58,14 +60,19 @@ router.get('/list', async (req, res) => {
           attributes: ['id', 'petName', 'avatar']
         }
       ],
-      order: [['createTime', 'DESC']]
+      order: [['createTime', 'DESC']],
+      limit: parseInt(size),
+      offset: parseInt(offset)
     });
 
     res.json({
       code: 0,
       msg: 'success',
       data: {
-        list: comments
+        list: comments,
+        total: count,
+        page: parseInt(page),
+        size: parseInt(size)
       }
     });
   } catch (error) {
