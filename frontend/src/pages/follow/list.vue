@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <view class="user-list">
-      <view class="user-item" v-for="user in list" :key="user.petId">
+      <view class="user-item" v-for="user in list" :key="user.id" @click="goProfile(user.id)">
         <image class="avatar" :src="user.avatar || '/static/default-avatar.png'" />
         <text class="name">{{ user.petName }}</text>
       </view>
@@ -52,6 +52,15 @@ const loadData = async () => {
     }
   } catch (e) {
     console.error(e);
+  }
+};
+
+const goProfile = (id) => {
+  const userInfo = uni.getStorageSync('userInfo');
+  if (userInfo && userInfo.id === id) {
+    uni.switchTab({ url: '/pages/profile/profile' });
+  } else {
+    uni.navigateTo({ url: `/pages/profile/other?id=${id}` });
   }
 };
 </script>
