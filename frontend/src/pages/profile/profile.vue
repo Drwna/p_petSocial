@@ -78,6 +78,21 @@ const loadData = async () => {
     pet.value = profileRes.data.pet;
     postCount.value = profileRes.data.postCount;
 
+    // 同步更新本地缓存
+    uni.setStorageSync('userInfo', pet.value);
+    let accounts = uni.getStorageSync('accounts') || [];
+    let accountsChanged = false;
+    accounts = accounts.map(acc => {
+      if (acc.pet && acc.pet.id === pet.value.id) {
+        accountsChanged = true;
+        return { ...acc, pet: pet.value };
+      }
+      return acc;
+    });
+    if (accountsChanged) {
+      uni.setStorageSync('accounts', accounts);
+    }
+
     const postsRes = await getPetPosts({ petId: userInfo.id });
     posts.value = postsRes.data.list || [];
 

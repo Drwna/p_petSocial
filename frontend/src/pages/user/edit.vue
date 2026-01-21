@@ -119,6 +119,25 @@ const handleSave = async () => {
     Object.assign(userInfo, form);
     uni.setStorageSync('userInfo', userInfo);
 
+    // 同步更新 accounts 列表中的信息
+    let accounts = uni.getStorageSync('accounts') || [];
+    const currentId = userInfo.id;
+    if (currentId) {
+      accounts = accounts.map(acc => {
+        if (acc.pet && acc.pet.id === currentId) {
+          return {
+            ...acc,
+            pet: {
+              ...acc.pet,
+              ...form
+            }
+          };
+        }
+        return acc;
+      });
+      uni.setStorageSync('accounts', accounts);
+    }
+
     setTimeout(() => {
       uni.navigateBack();
     }, 1500);
