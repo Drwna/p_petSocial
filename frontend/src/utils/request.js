@@ -1,4 +1,5 @@
 const BASE_URL = 'http://localhost:3001';
+// export const BASE_URL = 'http://120.26.217.88';
 
 const request = (options) => {
   return new Promise((resolve, reject) => {

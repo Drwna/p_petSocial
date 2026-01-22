@@ -1,6 +1,8 @@
 import request from '@/utils/request';
 
 const BASE_URL = 'http://localhost:3001';
+// const BASE_URL = 'http://192.168.1.3:3001';
+// const BASE_URL = 'http://120.26.217.88';
 
 // 账号相关
 export const sendCaptcha = (data) => {
