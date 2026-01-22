@@ -73,10 +73,17 @@ onMounted(async () => {
 });
 
 onShow(() => {
-  // 简单策略：如果列表空则加载
-  // if (posts.value.length === 0 && !loading.value) {
-    loadPosts(true);
-  // }
+    // 检查是否需要刷新（从发布页跳转过来）
+    const needRefresh = uni.getStorageSync('needRefreshIndex');
+    if (needRefresh) {
+        uni.removeStorageSync('needRefreshIndex');
+        loadPosts(true);
+    } else {
+        // 简单策略：如果列表空则加载
+        if (posts.value.length === 0 && !loading.value) {
+            loadPosts(true);
+        }
+    }
 });
 
 onPullDownRefresh(() => {

@@ -112,6 +112,10 @@ const handleSubmit = async () => {
       content.value = '';
       images.value = [];
       selectedCategory.value = null;
+      
+      // 标记首页需要刷新
+      uni.setStorageSync('needRefreshIndex', true);
+      
       uni.switchTab({ url: '/pages/index/index' });
     }, 1500);
     
