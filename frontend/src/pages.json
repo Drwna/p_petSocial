@@ -8,6 +8,12 @@
 			}
 		},
 		{
+			"path": "pages/baike/baike",
+			"style": {
+				"navigationBarTitleText": "宠物百科"
+			}
+		},
+		{
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "登录"
@@ -75,6 +81,12 @@
 				"text": "首页",
 				"iconPath": "static/tabbar/home.png",
 				"selectedIconPath": "static/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/baike/baike",
+				"text": "百科",
+				"iconPath": "static/tabbar/baike.png",
+				"selectedIconPath": "static/tabbar/baike-active.png"
 			},
 			{
 				"pagePath": "pages/post/create",
