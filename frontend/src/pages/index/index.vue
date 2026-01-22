@@ -2,40 +2,24 @@
   <view class="container">
     <!-- 分类 Tab -->
     <scroll-view scroll-x class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
-      <view 
-        class="tab-item" 
-        :class="{ active: currentCategory === 0 }" 
-        @click="changeCategory(0)"
-        id="tab-0"
-      >
+      <view class="category-tabs_placeholder"></view>
+      <view class="tab-item" :class="{ active: currentCategory === 0 }" @click="changeCategory(0)" id="tab-0">
         全部
       </view>
-      <view 
-        v-for="cat in categories" 
-        :key="cat.id" 
-        class="tab-item"
-        :class="{ active: currentCategory === cat.id }"
-        @click="changeCategory(cat.id)"
-        :id="'tab-' + cat.id"
-      >
+      <view v-for="cat in categories" :key="cat.id" class="tab-item" :class="{ active: currentCategory === cat.id }"
+        @click="changeCategory(cat.id)" :id="'tab-' + cat.id">
         {{ cat.name }}
       </view>
     </scroll-view>
-    
+
     <!-- 左右滑动切换内容 -->
     <swiper class="content-swiper" :current="currentSwiperIndex" @change="onSwiperChange">
       <!-- 全部 Tab 的内容 -->
       <swiper-item>
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
-            <post-card 
-              v-for="post in posts" 
-              :key="post.id" 
-              :post="post" 
-              @click="goDetail(post.id)"
-              @like="handleLike(post)"
-              @follow-change="onFollowChange"
-            />
+            <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
+              @like="handleLike(post)" @follow-change="onFollowChange" />
             <view v-if="loading" class="loading">加载中...</view>
             <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -44,20 +28,14 @@
 
       <!-- 各个分类 Tab 的内容 -->
       <swiper-item v-for="cat in categories" :key="cat.id">
-         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
+        <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
-             <!-- 这里为了演示简单，所有 swiper-item 共用 posts 数据，
+            <!-- 这里为了演示简单，所有 swiper-item 共用 posts 数据，
                   实际生产环境通常会为每个 Tab 维护独立的 list 数据以避免切换时闪烁或重新加载。
                   但鉴于当前代码结构，切换 Tab 时会重新请求 loadPosts，所以共用一个 posts 也是可行的方案（切换时显示 loading）。
              -->
-            <post-card 
-              v-for="post in posts" 
-              :key="post.id" 
-              :post="post" 
-              @click="goDetail(post.id)"
-              @like="handleLike(post)"
-              @follow-change="onFollowChange"
-            />
+            <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
+              @like="handleLike(post)" @follow-change="onFollowChange" />
             <view v-if="loading" class="loading">加载中...</view>
             <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -83,9 +61,9 @@ const hasMore = ref(true);
 // 计算当前 swiper 的 index
 // 0 对应 "全部"，1 对应 categories[0]，以此类推
 const currentSwiperIndex = computed(() => {
-    if (currentCategory.value === 0) return 0;
-    const index = categories.value.findIndex(c => c.id === currentCategory.value);
-    return index + 1;
+  if (currentCategory.value === 0) return 0;
+  const index = categories.value.findIndex(c => c.id === currentCategory.value);
+  return index + 1;
 });
 
 onMounted(async () => {
@@ -95,10 +73,10 @@ onMounted(async () => {
 });
 
 onShow(() => {
-    // 简单策略：如果列表空则加载
-    if (posts.value.length === 0 && !loading.value) {
-        loadPosts(true);
-    }
+  // 简单策略：如果列表空则加载
+  // if (posts.value.length === 0 && !loading.value) {
+    loadPosts(true);
+  // }
 });
 
 onPullDownRefresh(() => {
@@ -131,7 +109,7 @@ const changeCategory = (id) => {
   // swiper 切换会触发 @change -> onSwiperChange
   // 所以这里不需要手动调 loadPosts，除非 swiper change 没触发（例如点的是同一个？）
   // 上面第一行已经判断了 id 不同。
-  
+
   // 但是，如果仅仅修改 currentCategory，swiper 的 current 变了，会触发动画切换，
   // 动画切换完成后触发 @change。
   // 我们希望点击 Tab 立即开始加载数据，还是等滑过去再加载？
@@ -140,48 +118,48 @@ const changeCategory = (id) => {
 };
 
 const onSwiperChange = (e) => {
-    const index = e.detail.current;
-    let targetCatId = 0;
-    if (index === 0) {
-        targetCatId = 0;
-    } else {
-        targetCatId = categories.value[index - 1].id;
-    }
-    
-    if (currentCategory.value !== targetCatId) {
-        currentCategory.value = targetCatId;
-        loadPosts(true);
-    }
+  const index = e.detail.current;
+  let targetCatId = 0;
+  if (index === 0) {
+    targetCatId = 0;
+  } else {
+    targetCatId = categories.value[index - 1].id;
+  }
+
+  if (currentCategory.value !== targetCatId) {
+    currentCategory.value = targetCatId;
+    loadPosts(true);
+  }
 };
 
 const loadPosts = async (refresh = false) => {
   // 防止切换太快导致的数据错乱，可以加一个 cancel token 机制，这里简化处理
-  if (loading.value && !refresh) return; 
+  if (loading.value && !refresh) return;
   loading.value = true;
-  
+
   if (refresh) {
     page.value = 1;
     hasMore.value = true;
     posts.value = []; // 清空，显示 loading
   }
-  
+
   try {
     const res = await getPostList({
       categoryId: currentCategory.value || undefined,
       page: page.value,
       pageSize: 10
     });
-    
+
     const list = res.data.list;
 
     list.forEach(item => {
-        if (typeof item.images === 'string') {
-            try {
-                item.images = JSON.parse(item.images);
-            } catch(e) {
-                item.images = [];
-            }
+      if (typeof item.images === 'string') {
+        try {
+          item.images = JSON.parse(item.images);
+        } catch (e) {
+          item.images = [];
         }
+      }
     });
 
     if (refresh) {
@@ -189,7 +167,7 @@ const loadPosts = async (refresh = false) => {
     } else {
       posts.value = [...posts.value, ...list];
     }
-    
+
     if (list.length < 10) {
       hasMore.value = false;
     }
@@ -208,37 +186,37 @@ const handleLike = async (post) => {
   try {
     await likePost(post.id);
     if (post.liked) {
-        post.liked = false;
-        post.likeCount--;
+      post.liked = false;
+      post.likeCount--;
     } else {
-        post.liked = true;
-        post.likeCount++;
+      post.liked = true;
+      post.likeCount++;
     }
   } catch (e) {
     if (e.code === 401) {
-        uni.showModal({
-            title: '提示',
-            content: '请先登录',
-            success: (res) => {
-                if (res.confirm) {
-                    uni.navigateTo({ url: '/pages/login/login' });
-                }
-            }
-        });
+      uni.showModal({
+        title: '提示',
+        content: '请先登录',
+        success: (res) => {
+          if (res.confirm) {
+            uni.navigateTo({ url: '/pages/login/login' });
+          }
+        }
+      });
     }
   }
 };
 
 const onPostDeleted = (postId) => {
-    posts.value = posts.value.filter(p => p.id !== postId);
+  posts.value = posts.value.filter(p => p.id !== postId);
 };
 
 const onFollowChange = ({ petId, isFollowing }) => {
-    posts.value.forEach(post => {
-        if (post.pet.id === petId) {
-            post.isFollowing = isFollowing;
-        }
-    });
+  posts.value.forEach(post => {
+    if (post.pet.id === petId) {
+      post.isFollowing = isFollowing;
+    }
+  });
 };
 </script>
 
@@ -251,6 +229,11 @@ const onFollowChange = ({ petId, isFollowing }) => {
   overflow: hidden;
 }
 
+.category-tabs_placeholder {
+  display: inline-block;
+  width: 20rpx;
+}
+
 .category-tabs {
   height: 100rpx;
   background-color: transparent; // 透明背景，融入页面
@@ -259,7 +242,7 @@ const onFollowChange = ({ petId, isFollowing }) => {
   z-index: 10;
   padding: 0 20rpx;
   box-sizing: border-box;
-  
+
   .tab-item {
     display: inline-block;
     padding: 10rpx 32rpx;
@@ -271,14 +254,14 @@ const onFollowChange = ({ petId, isFollowing }) => {
     border-radius: 34rpx;
     background-color: #fff;
     transition: all 0.3s ease;
-    
+
     &.active {
       color: #fff;
       font-weight: 600;
       background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
       box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
       transform: scale(1.05);
-      
+
       &::after {
         display: none; // 移除下划线
       }
@@ -287,24 +270,25 @@ const onFollowChange = ({ petId, isFollowing }) => {
 }
 
 .content-swiper {
-    flex: 1;
-    height: 0;
-    
-    .post-scroll {
-        height: 100%;
-    }
+  flex: 1;
+  height: 0;
+
+  .post-scroll {
+    height: 100%;
+  }
 }
 
 .post-list {
   padding: 24rpx;
-  padding-bottom: 40rpx; 
+  padding-bottom: 40rpx;
 
-  .loading, .empty {
+  .loading,
+  .empty {
     text-align: center;
     padding: 60rpx;
     color: #ccc;
     font-size: 26rpx;
-    
+
     // 增加空状态插图占位（文字描述）
     &.empty::before {
       content: '🐾';
