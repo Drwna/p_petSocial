@@ -332,6 +332,9 @@ const handleDeleteComment = (comment) => {
     line-height: 1.8;
     color: #333;
     letter-spacing: 0.5rpx;
+    .text {
+      word-break: break-word;
+    }
   }
 
   .post-images {

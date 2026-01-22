@@ -1,12 +1,13 @@
 <template>
   <view class="post-card" @click="$emit('click')">
     <view class="post-header">
-      <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill" @click.stop="goProfile" />
+      <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill"
+        @click.stop="goProfile" />
       <view class="info" @click.stop="goProfile">
         <text class="name">{{ post.pet.petName }}</text>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
-      
+
       <!-- 关注按钮 -->
       <view class="follow-btn" v-if="!isSelf" @click.stop="handleFollowAction" :class="{ followed: isFollowing }">
         {{ isFollowing ? '已关注' : '关注' }}
@@ -184,7 +185,7 @@ const goProfile = () => {
         color: #999;
         box-shadow: none;
       }
-      
+
       &:active {
         transform: scale(0.95);
       }
@@ -194,7 +195,7 @@ const goProfile = () => {
       padding: 12rpx;
       background-color: #f9f9f9;
       border-radius: 50%;
-      
+
       .delete-icon {
         width: 32rpx;
         height: 32rpx;
@@ -205,12 +206,17 @@ const goProfile = () => {
 
   .post-content {
     margin-bottom: 24rpx;
+    overflow: hidden;
 
     .text {
       font-size: 30rpx;
       color: #333;
       line-height: 1.6;
       letter-spacing: 0.5rpx;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
@@ -252,7 +258,7 @@ const goProfile = () => {
         font-size: 26rpx;
         color: #666;
         font-weight: 500;
-        
+
         &.active {
           color: #ff4d4f;
         }
