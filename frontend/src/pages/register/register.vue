@@ -9,7 +9,7 @@
       <input class="input" v-model="form.email" placeholder="邮箱" />
       
       <view class="input-group">
-        <input class="input captcha" v-model="form.captcha" placeholder="验证码" />
+        <input class="input captcha" v-model="form.code" placeholder="验证码" />
         <button class="btn-code" @click="handleSendCaptcha" :disabled="countdown > 0">
           {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
         </button>
@@ -51,7 +51,7 @@ const loading = ref(false);
 const countdown = ref(0);
 const form = reactive({
   email: '',
-  captcha: '',
+  code: '',
   petName: '',
   petType: '',
   gender: '', // 0-男 1-女
@@ -92,7 +92,7 @@ const handleSendCaptcha = async () => {
 };
 
 const handleRegister = async () => {
-  if (!form.email || !form.captcha || !form.petName || !form.petType || form.gender === '') {
+  if (!form.email || !form.code || !form.petName || !form.petType || form.gender === '') {
     uni.showToast({ title: '请填写必填项', icon: 'none' });
     return;
   }
