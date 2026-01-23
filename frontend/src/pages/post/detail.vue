@@ -23,7 +23,10 @@
       </view>
 
       <view class="post-stats">
-        <text class="stat">点赞 {{ post.likeCount }}</text>
+        <view class="like-stat" @click="handleLike">
+          <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
+          <text>点赞 {{ post.likeCount }}</text>
+        </view>
         <text class="stat">评论 {{ post.commentCount }}</text>
       </view>
     </view>
@@ -33,7 +36,7 @@
       <view class="section-title">评论</view>
       <view class="comment-list">
         <view class="comment-item" v-for="comment in comments" :key="comment.id">
-          <image class="c-avatar" :src="comment.pet.avatar" @click="goUserProfile(comment.pet.id)" />
+          <image class="c-avatar" :src="comment.pet.avatar" mode="aspectFill" @click="goUserProfile(comment.pet.id)" />
           <view class="c-content">
             <view class="c-header">
               <text class="c-name" @click="goUserProfile(comment.pet.id)">{{ comment.pet.petName }}</text>
@@ -50,13 +53,11 @@
       </view>
     </view>
 
-    <!-- 底部操作栏 -->
     <view class="footer-bar">
+      <view class="comment-input_placeholder"></view>
       <input class="comment-input" v-model="commentContent" placeholder="说点什么..." confirm-type="send"
         @confirm="sendComment" />
-      <view class="action" @click="handleLike">
-        <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
-      </view>
+      <view class="comment-input_placeholder"></view>
     </view>
   </view>
 </template>
@@ -353,6 +354,7 @@ const handleDeleteComment = (comment) => {
     color: #999;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     padding-top: 20rpx;
     border-top: 1rpx solid #f9f9f9;
 
@@ -361,6 +363,20 @@ const handleDeleteComment = (comment) => {
       background-color: #f9f9f9;
       padding: 6rpx 20rpx;
       border-radius: 20rpx;
+    }
+
+    .like-stat {
+      display: flex;
+      align-items: center;
+      margin-left: 30rpx;
+      background-color: #f9f9f9;
+      padding: 6rpx 20rpx;
+      border-radius: 20rpx;
+
+      .icon {
+        font-size: 32rpx;
+        margin-right: 8rpx;
+      }
     }
   }
 }
@@ -467,10 +483,10 @@ const handleDeleteComment = (comment) => {
   background-color: #fff;
   display: flex;
   align-items: center;
-  padding: 0 30rpx;
+  padding: 0 0;
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
   z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom); // 适配底部安全区
+  padding-bottom: env(safe-area-inset-bottom);
 
   .comment-input {
     flex: 1;
@@ -482,17 +498,9 @@ const handleDeleteComment = (comment) => {
     color: #333;
   }
 
-  .action {
-    margin-left: 30rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 80rpx;
-    height: 80rpx;
-
-    .icon {
-      font-size: 56rpx;
-    }
+  .comment-input_placeholder{
+    width: 30rpx;
   }
+
 }
 </style>
