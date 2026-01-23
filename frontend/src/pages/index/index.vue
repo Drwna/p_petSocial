@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <!-- 分类 Tab -->
-    <scroll-view scroll-x class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
+    <scroll-view scroll-x enhanced :show-scrollbar="false" class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
       <view class="category-tabs_placeholder"></view>
       <view class="tab-item" :class="{ active: currentCategory === 0 }" @click="changeCategory(0)" id="tab-0">
         全部
@@ -252,6 +252,7 @@ const onFollowChange = ({ petId, isFollowing }) => {
 .category-tabs_placeholder {
   display: inline-block;
   width: 20rpx;
+  // 隐藏滚动条
 }
 
 .category-tabs {
