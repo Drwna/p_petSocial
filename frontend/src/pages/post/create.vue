@@ -189,7 +189,7 @@ const handleSubmit = async () => {
     width: 210rpx;
     height: 210rpx;
     background-color: #fff;
-    border: 4rpx dashed #FFD180;
+    border: 4rpx dashed #71C5DA;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -198,7 +198,7 @@ const handleSubmit = async () => {
     
     .icon {
       font-size: 80rpx;
-      color: #FFD180;
+      color: #71C5DA;
       font-weight: 300;
     }
   }
@@ -223,7 +223,7 @@ const handleSubmit = async () => {
     
     &::before {
       content: '#';
-      color: #FF9800;
+      color: #71C5DA;
       font-size: 36rpx;
       margin-right: 10rpx;
       font-weight: 800;
@@ -252,8 +252,8 @@ const handleSubmit = async () => {
   border-radius: 48rpx;
   font-size: 34rpx;
   font-weight: 600;
-  background: linear-gradient(90deg, #FFB74D, #FF9800);
-  box-shadow: 0 8rpx 20rpx rgba(255, 152, 0, 0.3);
+  background: linear-gradient(90deg, #71C5DA, #71C5DA);
+  box-shadow: 0 8rpx 20rpx rgba(113, 197, 218, 0.3);
   border: none;
   
   &:active {

@@ -171,7 +171,7 @@ const handleRegister = async () => {
     .btn-code {
       height: 100rpx;
       line-height: 100rpx;
-      background-color: #FF9800;
+      background-color: #71C5DA;
       color: #fff;
       font-size: 28rpx;
       border-radius: 0 50rpx 50rpx 0;
@@ -188,7 +188,7 @@ const handleRegister = async () => {
     line-height: 100rpx;
     font-size: 32rpx;
     font-weight: bold;
-    box-shadow: 0 10rpx 20rpx rgba(255, 152, 0, 0.3);
+    box-shadow: 0 10rpx 20rpx rgba(113, 197, 218, 0.3);
   }
 }
 </style>

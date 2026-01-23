@@ -25,7 +25,7 @@ page {
 
 /* 常用按钮样式 */
 .btn-primary {
-	background-color: #FF9800;
+	background-color: #71C5DA;
 	color: white;
 	border-radius: 40rpx;
 }
@@ -36,7 +36,7 @@ page {
 
 /* 常用文本颜色 */
 .text-primary {
-	color: #FF9800;
+	color: #71C5DA;
 }
 .text-gray {
 	color: #999;

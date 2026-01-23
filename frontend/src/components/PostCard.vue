@@ -172,12 +172,12 @@ const goProfile = () => {
       font-size: 24rpx;
       height: 52rpx;
       line-height: 52rpx;
-      background: linear-gradient(90deg, #FFB74D, #FF9800);
+      background: linear-gradient(90deg, #71C5DA, #71C5DA);
       color: #fff;
       padding: 0 24rpx;
       border-radius: 26rpx;
       font-weight: 600;
-      box-shadow: 0 4rpx 10rpx rgba(255, 152, 0, 0.2);
+      box-shadow: 0 4rpx 10rpx rgba(113, 197, 218, 0.2);
       transition: all 0.3s;
 
       &.followed {

@@ -275,7 +275,7 @@ const showSwitchAccount = () => {
     left: 0;
     right: 0;
     height: 12rpx;
-    background: linear-gradient(90deg, #FFB74D, #FF9800);
+    background: linear-gradient(90deg, #71C5DA, #71C5DA);
   }
 
   .user-info {
@@ -329,8 +329,8 @@ const showSwitchAccount = () => {
         .age {
           flex-shrink: 0;
           font-size: 22rpx;
-          color: #FF9800;
-          background-color: #FFF3E0;
+          color: #71C5DA;
+          background-color: #E4F5FB;
           padding: 4rpx 16rpx;
           border-radius: 20rpx;
           margin-left: 16rpx;
@@ -351,7 +351,7 @@ const showSwitchAccount = () => {
     justify-content: space-around;
     margin-bottom: 48rpx;
     padding: 20rpx 0;
-    background-color: #fffcf7;
+    background-color: #F5FBFD;
     border-radius: 24rpx;
 
     .stat-item {
@@ -388,15 +388,15 @@ const showSwitchAccount = () => {
       border: none;
 
       &.edit-btn {
-        background: linear-gradient(90deg, #FFB74D, #FF9800);
+        background: linear-gradient(90deg, #71C5DA, #71C5DA);
         color: #fff;
-        box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.25);
+        box-shadow: 0 4rpx 12rpx rgba(113, 197, 218, 0.25);
       }
 
       &.switch-btn {
         background-color: #fff;
-        color: #FF9800;
-        border: 2rpx solid #FF9800;
+        color: #71C5DA;
+        border: 2rpx solid #71C5DA;
       }
     }
   }
@@ -416,7 +416,7 @@ const showSwitchAccount = () => {
       content: '';
       width: 8rpx;
       height: 32rpx;
-      background-color: #FF9800;
+      background-color: #71C5DA;
       border-radius: 4rpx;
       margin-right: 16rpx;
     }

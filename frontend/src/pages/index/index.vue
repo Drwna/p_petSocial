@@ -265,8 +265,8 @@ const onFollowChange = ({ petId, isFollowing }) => {
     &.active {
       color: #fff;
       font-weight: 600;
-      background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
-      box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+      background: linear-gradient(135deg, #71C5DA 0%, #71C5DA 100%);
+      box-shadow: 0 4rpx 12rpx rgba(113, 197, 218, 0.3);
       transform: scale(1.05);
 
       &::after {

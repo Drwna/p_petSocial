@@ -303,12 +303,12 @@ const handleDeleteComment = (comment) => {
       font-size: 24rpx;
       height: 56rpx;
       line-height: 56rpx;
-      background: linear-gradient(90deg, #FFB74D, #FF9800);
+      background: linear-gradient(90deg, #71C5DA, #71C5DA);
       color: #fff;
       padding: 0 36rpx;
       border-radius: 28rpx;
       font-weight: 600;
-      box-shadow: 0 4rpx 10rpx rgba(255, 152, 0, 0.2);
+      box-shadow: 0 4rpx 10rpx rgba(113, 197, 218, 0.2);
 
       &.followed {
         background: #f5f5f5;
@@ -399,7 +399,7 @@ const handleDeleteComment = (comment) => {
         content: '';
         width: 8rpx;
         height: 28rpx;
-        background-color: #FF9800;
+        background-color: #71C5DA;
         border-radius: 4rpx;
         margin-right: 16rpx;
     }

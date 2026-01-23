@@ -67,12 +67,12 @@
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
 		"navigationBarTitleText": "宠物社交圈",
-		"navigationBarBackgroundColor": "#FF9800",
+		"navigationBarBackgroundColor": "#71C5DA",
 		"backgroundColor": "#F8F8F8"
 	},
 	"tabBar": {
 		"color": "#999999",
-		"selectedColor": "#FF9800",
+		"selectedColor": "#71C5DA",
 		"backgroundColor": "#FFFFFF",
 		"borderStyle": "black",
 		"list": [
