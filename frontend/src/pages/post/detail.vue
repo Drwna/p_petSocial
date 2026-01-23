@@ -104,6 +104,11 @@ const loadPost = async (id) => {
     if (typeof data.images === 'string') {
       try { data.images = JSON.parse(data.images); } catch (e) { data.images = []; }
     }
+    const likeUpdate = uni.getStorageSync('postLikeUpdated');
+    if (likeUpdate && likeUpdate.id === data.id) {
+      data.liked = likeUpdate.liked;
+      data.likeCount = likeUpdate.likeCount;
+    }
     post.value = data;
 
     // Check if self
@@ -181,6 +186,11 @@ const handleLike = async () => {
     await likePost(post.value.id);
     post.value.liked = !post.value.liked;
     post.value.likeCount += post.value.liked ? 1 : -1;
+    uni.setStorageSync('postLikeUpdated', {
+      id: post.value.id,
+      liked: post.value.liked,
+      likeCount: post.value.likeCount
+    });
   } catch (e) { console.error(e); }
 };
 

@@ -73,13 +73,21 @@ onMounted(async () => {
 });
 
 onShow(() => {
-    // 检查是否需要刷新（从发布页跳转过来）
+    const likeUpdate = uni.getStorageSync('postLikeUpdated');
+    if (likeUpdate && likeUpdate.id) {
+        const target = posts.value.find(p => p.id === likeUpdate.id);
+        if (target) {
+            target.liked = likeUpdate.liked;
+            target.likeCount = likeUpdate.likeCount;
+        }
+        uni.removeStorageSync('postLikeUpdated');
+    }
+
     const needRefresh = uni.getStorageSync('needRefreshIndex');
     if (needRefresh) {
         uni.removeStorageSync('needRefreshIndex');
         loadPosts(true);
     } else {
-        // 简单策略：如果列表空则加载
         if (posts.value.length === 0 && !loading.value) {
             loadPosts(true);
         }
@@ -199,6 +207,11 @@ const handleLike = async (post) => {
       post.liked = true;
       post.likeCount++;
     }
+    uni.setStorageSync('postLikeUpdated', {
+      id: post.id,
+      liked: post.liked,
+      likeCount: post.likeCount
+    });
   } catch (e) {
     if (e.code === 401) {
       uni.showModal({

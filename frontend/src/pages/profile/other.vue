@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
+import { onLoad, onPullDownRefresh, onReachBottom, onShow } from '@dcloudio/uni-app';
 import { getPetProfileById, getPetPostsById, likePost, followPet, unfollowPet, getFollowStatus } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
@@ -67,6 +67,18 @@ onLoad((options) => {
     petId.value = options.id;
     loadData();
     checkFollowStatus();
+  }
+});
+
+onShow(() => {
+  const likeUpdate = uni.getStorageSync('postLikeUpdated');
+  if (likeUpdate && likeUpdate.id) {
+    const target = posts.value.find(p => p.id === likeUpdate.id);
+    if (target) {
+      target.liked = likeUpdate.liked;
+      target.likeCount = likeUpdate.likeCount;
+    }
+    uni.removeStorageSync('postLikeUpdated');
   }
 });
 

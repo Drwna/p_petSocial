@@ -204,11 +204,22 @@ router.get('/:id', async (req, res) => {
     const likeCount = await PostLike.count({ where: { postId: post.id } });
     const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
 
-    // 检查当前宠物是否已点赞
+    // 检查当前宠物是否已点赞（根据 token 解析当前用户，保持与列表接口一致的逻辑）
     let liked = false;
-    if (req.petId) {
+    let currentPetId = null;
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        currentPetId = decoded.petId;
+      } catch (e) {
+        // ignore token error
+      }
+    }
+
+    if (currentPetId) {
       const postLike = await PostLike.findOne({
-        where: { postId: post.id, petId: req.petId }
+        where: { postId: post.id, petId: currentPetId }
       });
       liked = !!postLike;
     }

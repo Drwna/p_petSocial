@@ -61,6 +61,15 @@ const hasMore = ref(true);
 const loading = ref(false);
 
 onShow(() => {
+  const likeUpdate = uni.getStorageSync('postLikeUpdated');
+  if (likeUpdate && likeUpdate.id) {
+    const target = posts.value.find(p => p.id === likeUpdate.id);
+    if (target) {
+      target.liked = likeUpdate.liked;
+      target.likeCount = likeUpdate.likeCount;
+    }
+    uni.removeStorageSync('postLikeUpdated');
+  }
   loadData();
 });
 
