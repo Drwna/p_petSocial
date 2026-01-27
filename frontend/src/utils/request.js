@@ -1,5 +1,7 @@
-const BASE_URL = 'http://localhost:3001';
+// const BASE_URL = 'http://localhost:3001';
 // export const BASE_URL = 'http://120.26.217.88';
+// https://cwsj.funnyup.top/api/post/list
+const BASE_URL = 'https://cwsj.funnyup.top';
 
 const request = (options) => {
   return new Promise((resolve, reject) => {

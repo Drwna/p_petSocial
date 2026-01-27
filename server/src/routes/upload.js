@@ -15,8 +15,9 @@ router.post('/single', auth, upload.single('image'), (req, res) => {
       });
     }
 
-    // 生成图片URL
-    const imageUrl = `${req.protocol}://${req.get('host')}/public/images/${req.file.filename}`;
+    // 生成图片URL，使用配置的BASE_URL
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const imageUrl = `${baseUrl}/public/images/${req.file.filename}`;
 
     res.json({
       code: 0,
@@ -46,10 +47,11 @@ router.post('/single', auth, upload.single('image'), (req, res) => {
 //       });
 //     }
 
-//     // 生成图片URL列表
+//     // 生成图片URL列表，使用配置的BASE_URL
+//     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
 //     const imageUrls = req.files.map(file => {
 //       return {
-//         url: `${req.protocol}://${req.get('host')}/public/images/${file.filename}`,
+//         url: `${baseUrl}/public/images/${file.filename}`,
 //         filename: file.filename,
 //         size: file.size
 //       };
