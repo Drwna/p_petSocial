@@ -4,7 +4,8 @@
     <view class="search-header">
       <view class="search-box">
         <text class="search-icon">🔍</text>
-        <input class="search-input" v-model="keyword" placeholder="输入宠物名称，如：拉布拉多" @confirm="handleSearch" confirm-type="search" />
+        <input class="search-input" v-model="keyword" placeholder="输入宠物名称，如：拉布拉多" @confirm="handleSearch"
+          confirm-type="search" />
         <button class="search-btn" @click="handleSearch">搜索</button>
       </view>
     </view>
@@ -26,7 +27,7 @@
           </view>
           <view class="pic-overlay"></view>
         </view>
-        
+
         <view class="pet-header">
           <text class="pet-name">{{ petData.name }}</text>
           <text class="pet-engname">{{ petData.engname }}</text>
@@ -151,52 +152,8 @@ const handleSearch = () => {
       // 极速数据接口返回的 status 可能为字符串或数字的 '0' 代表成功
       if (res.data && (res.data.status === 0 || res.data.status === '0')) {
         petData.value = res.data.result;
-        petData.value.pic = '';
-
-        // 尝试从 message 中提取“（英语：xxx）”格式的英文名，如果没有则使用返回的 engname
-        let engName = petData.value.engname || '';
-        const match = petData.value.message?.match(/[（\(]英语[：:](.*?)[）\)]/);
-        if (match && match[1]) {
-          engName = match[1].trim();
-        }
-
-        if (engName) {
-          // 清理可能包含的特殊符号以优化搜索
-          const queryName = engName.replace(/[-\s]/g, '');
-          
-          // 判断是否包含中文字符
-          const hasChinese = /[\u4e00-\u9fa5]/.test(queryName);
-          const requestData = {
-            query: queryName,
-            per_page: 1,
-            client_id: 'U7HcWBj7tAPpc0eath3_1XKpfQa2gh-kcjuMScHO_lo'
-          };
-          
-          if (hasChinese) {
-            requestData.lang = 'zh-Hans';
-          }
-
-          uni.request({
-            url: 'https://api.unsplash.com/search/photos',
-            method: 'GET',
-            data: requestData,
-            success: (unsplashRes) => {
-              if (unsplashRes.data && unsplashRes.data.results && unsplashRes.data.results.length > 0) {
-                // 使用 Unsplash 的高质量图片替换默认的极速数据图片
-                petData.value.pic = unsplashRes.data.results[0].urls.small;
-              }
-            },
-            fail: (err) => {
-              console.error('Unsplash 图片获取失败', err);
-            }
-          });
-        }
-      } else {
-        petData.value = null;
-        uni.showToast({
-          title: res.data?.msg || '未找到相关信息',
-          icon: 'none'
-        });
+        // 将 pic 的 http 替换为 https
+        petData.value.pic = petData.value.pic.replace('http', 'https');
       }
     },
     fail: (err) => {
@@ -231,7 +188,7 @@ const handleSearch = () => {
   border-radius: 50rpx;
   padding: 10rpx;
   box-shadow: 0 8rpx 24rpx rgba(113, 197, 218, 0.15);
-  
+
   .search-icon {
     font-size: 32rpx;
     margin-left: 20rpx;
@@ -246,7 +203,7 @@ const handleSearch = () => {
     font-size: 28rpx;
     color: #333;
   }
-  
+
   .search-btn {
     margin-left: 10rpx;
     height: 70rpx;
@@ -258,6 +215,7 @@ const handleSearch = () => {
     border-radius: 40rpx;
     padding: 0 40rpx;
     box-shadow: 0 4rpx 10rpx rgba(113, 197, 218, 0.3);
+
     &::after {
       border: none;
     }
@@ -295,7 +253,9 @@ const handleSearch = () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .result-container {
@@ -331,13 +291,13 @@ const handleSearch = () => {
       align-items: center;
       justify-content: center;
       color: #999;
-      
+
       .no-pic-icon {
         font-size: 80rpx;
         margin-bottom: 20rpx;
         opacity: 0.6;
       }
-      
+
       .no-pic-text {
         font-size: 28rpx;
         letter-spacing: 2rpx;
@@ -350,7 +310,7 @@ const handleSearch = () => {
       left: 0;
       right: 0;
       height: 100rpx;
-      background: linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0));
+      background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
     }
   }
 
@@ -453,10 +413,12 @@ const handleSearch = () => {
 
         .stars {
           display: flex;
+
           .star {
             color: #e6e6e6;
             font-size: 28rpx;
             margin-right: 6rpx;
+
             &.active {
               color: #ffca28;
               text-shadow: 0 2rpx 4rpx rgba(255, 202, 40, 0.4);
