@@ -83,15 +83,16 @@ onShow(() => {
         uni.removeStorageSync('postLikeUpdated');
     }
 
-    const needRefresh = uni.getStorageSync('needRefreshIndex');
-    if (needRefresh) {
-        uni.removeStorageSync('needRefreshIndex');
-        loadPosts(true);
-    } else {
-        if (posts.value.length === 0 && !loading.value) {
-            loadPosts(true);
-        }
-    }
+	loadPosts(true);
+    // const needRefresh = uni.getStorageSync('needRefreshIndex');
+    // if (needRefresh) {
+    //     uni.removeStorageSync('needRefreshIndex');
+    //     loadPosts(true);
+    // } else {
+    //     if (posts.value.length === 0 && !loading.value) {
+    //         loadPosts(true);
+    //     }
+    // }
 });
 
 onPullDownRefresh(() => {
