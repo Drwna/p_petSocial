@@ -65,6 +65,10 @@ npm run dev:mp-weixin
 ### 3. 配置后端地址
 如果后端地址不是本地 `3001` 端口，请修改 `src/utils/request.js` 和 `src/api/index.js` 中的 `BASE_URL`。
 
+### 4. 本地真机调试
+
+请查看修改 `src/utils/request.js` 和 `src/api/index.js` 中的 `BASE_URL`。
+
 ## ✨ 核心功能
 
 1.  **认证系统**

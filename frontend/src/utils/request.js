@@ -1,7 +1,6 @@
 // const BASE_URL = 'http://localhost:3001';
-// export const BASE_URL = 'http://120.26.217.88';
-// https://cwsj.funnyup.top/api/post/list
-const BASE_URL = 'https://cwsj.funnyup.top';
+// const BASE_URL = 'http://192.168.1.3:3001'; // 真机调试改为电脑的ip地址
+const BASE_URL = 'http://cwsj.funnyup.top/';
 
 const request = (options) => {
   return new Promise((resolve, reject) => {
