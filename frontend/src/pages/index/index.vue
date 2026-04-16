@@ -1,5 +1,21 @@
 <template>
   <view class="container">
+    <!-- 搜索框 -->
+    <view class="search-container">
+      <view class="search-box">
+        <text class="search-icon">🔍</text>
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="搜索贴子内容..." 
+          class="search-input" 
+          @confirm="onSearch" 
+          confirm-type="search"
+        />
+        <text v-if="searchQuery" class="clear-icon" @click="clearSearch">✖</text>
+      </view>
+    </view>
+
     <!-- 分类 Tab -->
     <scroll-view scroll-x enhanced :show-scrollbar="false" class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
       <view class="category-tabs_placeholder"></view>
@@ -57,6 +73,16 @@ const posts = ref([]);
 const page = ref(1);
 const loading = ref(false);
 const hasMore = ref(true);
+const searchQuery = ref('');
+
+const onSearch = () => {
+  loadPosts(true);
+};
+
+const clearSearch = () => {
+  searchQuery.value = '';
+  loadPosts(true);
+};
 
 // 计算当前 swiper 的 index
 // 0 对应 "全部"，1 对应 categories[0]，以此类推
@@ -162,6 +188,7 @@ const loadPosts = async (refresh = false) => {
   try {
     const res = await getPostList({
       categoryId: currentCategory.value || undefined,
+      keyword: searchQuery.value || '',
       page: page.value,
       pageSize: 10
     });
@@ -248,6 +275,40 @@ const onFollowChange = ({ petId, isFollowing }) => {
   flex-direction: column;
   background-color: #FFFBF0; // 暖米色背景
   overflow: hidden;
+}
+
+.search-container {
+  padding: 20rpx;
+  background-color: #fff;
+  flex-shrink: 0;
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 40rpx;
+    padding: 10rpx 24rpx;
+    height: 70rpx;
+    box-sizing: border-box;
+
+    .search-icon {
+      font-size: 28rpx;
+      margin-right: 16rpx;
+      color: #999;
+    }
+
+    .search-input {
+      flex: 1;
+      font-size: 28rpx;
+      color: #333;
+    }
+
+    .clear-icon {
+      font-size: 24rpx;
+      color: #ccc;
+      padding: 10rpx;
+    }
+  }
 }
 
 .category-tabs_placeholder {

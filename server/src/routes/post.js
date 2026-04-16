@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 const { Post, Pet, Category, PostLike, Comment, Follow } = require('../models');
 const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
@@ -80,13 +81,19 @@ router.post('/delete', auth, async (req, res) => {
 // 获取帖子列表（首页）
 router.get('/list', async (req, res) => {
   try {
-    const { categoryId, page = 1, pageSize = 10 } = req.query;
+    const { categoryId, keyword, page = 1, pageSize = 10 } = req.query;
 
     const offset = (page - 1) * pageSize;
     const where = { isDeleted: 0 };
 
     if (categoryId && categoryId !== 'undefined') {
       where.categoryId = categoryId;
+    }
+
+    if (keyword && keyword.trim()) {
+      where.content = {
+        [Op.like]: `%${keyword.trim()}%`
+      };
     }
 
     const { rows: posts, count } = await Post.findAndCountAll({
