@@ -248,4 +248,39 @@ router.get('/:petId/posts', async (req, res) => {
   }
 });
 
+// 封装 dataDB 百科搜索服务
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({
+        code: 400,
+        msg: '请提供搜索名称'
+      });
+    }
+
+    // 调用本地 dataDB 的搜索接口
+    const response = await fetch(`http://localhost:3005/api/pets/search?name=${encodeURIComponent(name)}`);
+    const result = await response.json();
+
+    if (result.success) {
+      res.json({
+        code: 0,
+        data: result.data
+      });
+    } else {
+      res.status(500).json({
+        code: 500,
+        msg: result.message || '搜索失败'
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      code: 500,
+      msg: '请求百科搜索服务异常',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

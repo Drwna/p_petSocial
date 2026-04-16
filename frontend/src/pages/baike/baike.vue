@@ -110,6 +110,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { searchPetBaike } from '../../api/index.js';
 
 const keyword = ref('');
 const loading = ref(false);
@@ -131,7 +132,7 @@ const traits = computed(() => {
   ];
 });
 
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!keyword.value.trim()) {
     uni.showToast({ title: '请输入搜索关键字', icon: 'none' });
     return;
@@ -141,29 +142,25 @@ const handleSearch = () => {
   hasSearched.value = true;
   petData.value = null;
 
-  uni.request({
-    url: 'https://api.jisuapi.com/pet/query',
-    method: 'GET',
-    data: {
-      appkey: '1e866d42294f12bb',
-      name: keyword.value.trim()
-    },
-    success: (res) => {
-      // 极速数据接口返回的 status 可能为字符串或数字的 '0' 代表成功
-      if (res.data && (res.data.status === 0 || res.data.status === '0')) {
-        petData.value = res.data.result;
-        // 将 pic 的 http 替换为 https
+  try {
+    const res = await searchPetBaike(keyword.value.trim());
+
+    if (res.code === 0 && res.data && res.data.length > 0) {
+      // 取第一个匹配的宠物信息
+      petData.value = res.data[0];
+      // 如果有图片，将 pic 的 http 替换为 https
+      if (petData.value.pic) {
         petData.value.pic = petData.value.pic.replace('http', 'https');
       }
-    },
-    fail: (err) => {
-      console.error('搜索失败', err);
-      uni.showToast({ title: '网络请求失败', icon: 'none' });
-    },
-    complete: () => {
-      loading.value = false;
+    } else {
+      uni.showToast({ title: '未找到相关宠物', icon: 'none' });
     }
-  });
+  } catch (err) {
+    console.error('搜索失败', err);
+    // request.js 中已经处理了部分错误提示
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
