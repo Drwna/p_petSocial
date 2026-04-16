@@ -6,6 +6,9 @@ const Comment = require('./Comment');
 const PostLike = require('./PostLike');
 const Follow = require('./Follow');
 const VerificationCode = require('./VerificationCode');
+const Topic = require('./Topic');
+const PostTopic = require('./PostTopic');
+const Bookmark = require('./Bookmark');
 
 // 建立模型关系
 // Account 与 Pet 是一对一关系
@@ -19,6 +22,12 @@ Pet.hasMany(Post, { foreignKey: 'petId', sourceKey: 'id', as: 'posts' });
 // Post 与 Category 是多对一关系
 Post.belongsTo(Category, { foreignKey: 'categoryId', targetKey: 'id', as: 'category' });
 Category.hasMany(Post, { foreignKey: 'categoryId', sourceKey: 'id', as: 'posts' });
+
+// Post 与 Topic 是多对多关系
+Post.belongsToMany(Topic, { through: PostTopic, foreignKey: 'postId', otherKey: 'topicId', as: 'topics' });
+Topic.belongsToMany(Post, { through: PostTopic, foreignKey: 'topicId', otherKey: 'postId', as: 'posts' });
+PostTopic.belongsTo(Topic, { foreignKey: 'topicId' });
+PostTopic.belongsTo(Post, { foreignKey: 'postId' });
 
 // Comment 与 Post 是多对一关系
 Comment.belongsTo(Post, { foreignKey: 'postId', targetKey: 'id', as: 'post' });
@@ -40,6 +49,13 @@ Pet.hasMany(PostLike, { foreignKey: 'petId', sourceKey: 'id', as: 'likes' });
 Follow.belongsTo(Pet, { as: 'follower', foreignKey: 'followerPetId', targetKey: 'id' });
 Follow.belongsTo(Pet, { as: 'following', foreignKey: 'followingPetId', targetKey: 'id' });
 
+// Bookmark 与 Pet 和 Post 的关系
+Bookmark.belongsTo(Pet, { foreignKey: 'petId', targetKey: 'id', as: 'pet' });
+Pet.hasMany(Bookmark, { foreignKey: 'petId', sourceKey: 'id', as: 'bookmarks' });
+
+Bookmark.belongsTo(Post, { foreignKey: 'postId', targetKey: 'id', as: 'post' });
+Post.hasMany(Bookmark, { foreignKey: 'postId', sourceKey: 'id', as: 'bookmarks' });
+
 module.exports = {
   Account,
   Pet,
@@ -48,5 +64,8 @@ module.exports = {
   Comment,
   PostLike,
   Follow,
-  VerificationCode
+  VerificationCode,
+  Topic,
+  PostTopic,
+  Bookmark
 };

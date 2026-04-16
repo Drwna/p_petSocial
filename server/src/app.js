@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/db');
-const { Category } = require('./models');
+const { Category, Topic } = require('./models');
 require('dotenv').config();
 
 const app = express();
@@ -20,6 +20,8 @@ const categoryRoutes = require('./routes/category');
 const commentRoutes = require('./routes/comment');
 const followRoutes = require('./routes/follow');
 const uploadRoutes = require('./routes/upload');
+const topicRoutes = require('./routes/topic');
+const bookmarkRoutes = require('./routes/bookmark');
 
 app.use('/api/account', accountRoutes);
 app.use('/api/pet', petRoutes);
@@ -28,6 +30,8 @@ app.use('/api/category', categoryRoutes);
 app.use('/api/comment', commentRoutes);
 app.use('/api/follow', followRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/topic', topicRoutes);
+app.use('/api/bookmark', bookmarkRoutes);
 
 // 初始化数据库
 const initDatabase = async () => {
@@ -48,6 +52,19 @@ const initDatabase = async () => {
       ];
       
       await Category.bulkCreate(categories);
+    }
+
+    // 初始化话题数据
+    const topicCount = await Topic.count();
+    if (topicCount === 0) {
+      const topics = [
+        { name: '经验交流', postCount: 0, viewCount: 0 },
+        { name: '话题讨论', postCount: 0, viewCount: 0 },
+        { name: '萌宠日常', postCount: 0, viewCount: 0 },
+        { name: '新手求助', postCount: 0, viewCount: 0 },
+        { name: '铲屎官日常', postCount: 0, viewCount: 0 }
+      ];
+      await Topic.bulkCreate(topics);
     }
 
     console.log('数据库初始化成功');

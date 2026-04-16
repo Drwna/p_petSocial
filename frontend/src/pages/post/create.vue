@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <textarea class="content-input" v-model="content" placeholder="分享宠物的趣事..." maxlength="500" />
+    <textarea class="content-input" v-model="content" :placeholder="placeholderText" maxlength="500" />
     
     <view class="image-list">
       <view class="image-item" v-for="(img, index) in images" :key="index">
@@ -22,25 +22,69 @@
         </view>
       </picker>
     </view>
+
+    <view class="setting-item topic-setting">
+      <view class="topic-header">
+        <text class="label">参与话题 (可多选)</text>
+        <input class="topic-search" type="text" v-model="topicSearchKeyword" placeholder="搜索话题..." />
+      </view>
+      <scroll-view scroll-y class="topic-tags-scroll">
+        <view class="topic-tags">
+          <view 
+            class="tag" 
+            :class="{ active: selectedTopicIds.includes(topic.id) }"
+            v-for="topic in filteredTopics" 
+            :key="topic.id"
+            @click="toggleTopic(topic.id)"
+          >
+            #{{ topic.name }}
+          </view>
+          <view v-if="filteredTopics.length === 0" class="empty-topic">暂无匹配话题</view>
+        </view>
+      </scroll-view>
+    </view>
     
     <button class="btn-primary submit-btn" @click="handleSubmit" :loading="loading">发布</button>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getCategories, createPost, uploadImages } from '@/api/index';
+import { ref, onMounted, computed } from 'vue';
+import { getCategories, createPost, uploadImages, getTopicList } from '@/api/index';
 
 const content = ref('');
 const images = ref([]); // 本地预览路径
 const categories = ref([]);
 const selectedCategory = ref(null);
+const topics = ref([]);
+const selectedTopicIds = ref([]);
 const loading = ref(false);
+const topicSearchKeyword = ref('');
+
+const filteredTopics = computed(() => {
+  if (!topicSearchKeyword.value) return topics.value;
+  return topics.value.filter(t => t.name.includes(topicSearchKeyword.value));
+});
+
+const placeholderText = computed(() => {
+  if (selectedCategory.value) {
+    if (selectedCategory.value.name.includes('经验') || selectedCategory.value.name.includes('干货')) {
+      return '分享你的养宠干货、避坑指南或就医经验...';
+    }
+    if (selectedCategory.value.name.includes('求助')) {
+      return '详细描述你需要帮助的问题...';
+    }
+  }
+  return '分享宠物的趣事...';
+});
 
 onMounted(async () => {
   try {
     const res = await getCategories();
     categories.value = res.data.list;
+    
+    const topicRes = await getTopicList();
+    topics.value = topicRes.data.list;
   } catch (e) {
     console.error(e);
   }
@@ -81,6 +125,19 @@ const onCategoryChange = (e) => {
   selectedCategory.value = categories.value[e.detail.value];
 };
 
+const toggleTopic = (id) => {
+  const index = selectedTopicIds.value.indexOf(id);
+  if (index > -1) {
+    selectedTopicIds.value.splice(index, 1);
+  } else {
+    if (selectedTopicIds.value.length >= 3) {
+      uni.showToast({ title: '最多选择3个话题', icon: 'none' });
+      return;
+    }
+    selectedTopicIds.value.push(id);
+  }
+};
+
 const handleSubmit = async () => {
   if (!content.value && images.value.length === 0) {
     uni.showToast({ title: '写点什么吧', icon: 'none' });
@@ -103,7 +160,8 @@ const handleSubmit = async () => {
     await createPost({
       content: content.value,
       images: uploadedUrls,
-      categoryId: selectedCategory.value.id
+      categoryId: selectedCategory.value.id,
+      topicIds: selectedTopicIds.value
     });
     
     uni.showToast({ title: '发布成功' });
@@ -112,6 +170,7 @@ const handleSubmit = async () => {
       content.value = '';
       images.value = [];
       selectedCategory.value = null;
+      selectedTopicIds.value = [];
       
       // 标记首页需要刷新
       uni.setStorageSync('needRefreshIndex', true);
@@ -240,6 +299,68 @@ const handleSubmit = async () => {
       margin-left: 16rpx;
       color: #ccc;
       font-weight: 700;
+    }
+  }
+}
+
+.topic-setting {
+  flex-direction: column;
+  align-items: flex-start;
+  
+  .topic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20rpx;
+    
+    .label {
+      margin-bottom: 0;
+    }
+    
+    .topic-search {
+      flex: 1;
+      margin-left: 30rpx;
+      background-color: #f5f5f5;
+      border-radius: 30rpx;
+      padding: 6rpx 24rpx;
+      font-size: 26rpx;
+      height: 56rpx;
+      color: #333;
+    }
+  }
+
+  .topic-tags-scroll {
+    max-height: 300rpx;
+    width: 100%;
+  }
+
+  .empty-topic {
+    font-size: 26rpx;
+    color: #999;
+    padding: 20rpx 0;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .topic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+    padding-bottom: 10rpx;
+    
+    .tag {
+      font-size: 26rpx;
+      color: #666;
+      background-color: #f5f5f5;
+      padding: 10rpx 24rpx;
+      border-radius: 30rpx;
+      transition: all 0.3s;
+      
+      &.active {
+        background-color: #71C5DA;
+        color: #fff;
+      }
     }
   }
 }

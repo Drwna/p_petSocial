@@ -116,10 +116,24 @@ export const getPostDetail = (postId) => {
   });
 };
 
-// 分类
+// 分类与话题
 export const getCategories = () => {
   return request({
     url: '/api/category/list',
+    method: 'GET'
+  });
+};
+
+export const getTopicList = () => {
+  return request({
+    url: '/api/topic/list',
+    method: 'GET'
+  });
+};
+
+export const getHotTopics = () => {
+  return request({
+    url: '/api/topic/hot',
     method: 'GET'
   });
 };
@@ -130,6 +144,22 @@ export const likePost = (postId) => {
     url: '/api/post/like',
     method: 'POST',
     data: { postId }
+  });
+};
+
+export const toggleBookmark = (postId) => {
+  return request({
+    url: '/api/bookmark/toggle',
+    method: 'POST',
+    data: { postId }
+  });
+};
+
+export const getBookmarkList = (data) => {
+  return request({
+    url: '/api/bookmark/list',
+    method: 'GET',
+    data
   });
 };
 

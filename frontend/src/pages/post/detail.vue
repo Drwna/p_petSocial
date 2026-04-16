@@ -3,9 +3,9 @@
     <!-- 帖子主体 -->
     <view class="post-card">
       <view class="post-header">
-        <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill" @click="goProfile" />
+        <image class="avatar" :src="post.pet?.avatar || '/static/default-avatar.png'" mode="aspectFill" @click="goProfile" />
         <view class="info" @click="goProfile">
-          <text class="name">{{ post.pet.petName }}</text>
+          <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
           <text class="time">{{ formatTime(post.createTime) }}</text>
         </view>
         <!-- 关注按钮 -->
@@ -14,6 +14,9 @@
       </view>
 
       <view class="post-content">
+        <view class="topic-list" v-if="post.topics && post.topics.length > 0">
+          <text class="topic-tag" v-for="topic in post.topics" :key="topic.id" @click="goTopic(topic.id, topic.name)">#{{ topic.name }}#</text>
+        </view>
         <text class="text">{{ post.content }}</text>
       </view>
 
@@ -27,6 +30,10 @@
           <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
           <text>点赞 {{ post.likeCount }}</text>
         </view>
+        <view class="like-stat" @click="handleBookmark">
+          <text class="icon">{{ post.isBookmarked ? '⭐' : '☆' }}</text>
+          <text>{{ post.isBookmarked ? '已收藏' : '收藏' }}</text>
+        </view>
         <text class="stat">评论 {{ post.commentCount }}</text>
       </view>
     </view>
@@ -36,10 +43,10 @@
       <view class="section-title">评论</view>
       <view class="comment-list">
         <view class="comment-item" v-for="comment in comments" :key="comment.id">
-          <image class="c-avatar" :src="comment.pet.avatar" mode="aspectFill" @click="goUserProfile(comment.pet.id)" />
+          <image class="c-avatar" :src="comment.pet?.avatar || '/static/default-avatar.png'" mode="aspectFill" @click="goUserProfile(comment.pet?.id)" />
           <view class="c-content">
             <view class="c-header">
-              <text class="c-name" @click="goUserProfile(comment.pet.id)">{{ comment.pet.petName }}</text>
+              <text class="c-name" @click="goUserProfile(comment.pet?.id)">{{ comment.pet?.petName || '已注销用户' }}</text>
               <text class="c-time">{{ formatTime(comment.createTime) }}</text>
             </view>
             <text class="c-text">{{ comment.content }}</text>
@@ -65,7 +72,7 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad, onReachBottom } from '@dcloudio/uni-app';
-import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment } from '@/api/index';
+import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment, toggleBookmark } from '@/api/index';
 
 const post = ref(null);
 const comments = ref([]);
@@ -120,9 +127,9 @@ const loadPost = async (id) => {
 
     // Check if self
     const userInfo = uni.getStorageSync('userInfo');
-    if (userInfo && userInfo.id === data.pet.id) {
+    if (userInfo && data.pet && userInfo.id === data.pet.id) {
       isSelf.value = true;
-    } else if (userInfo) {
+    } else if (userInfo && data.pet) {
       checkFollowStatus(data.pet.id);
     }
   } catch (e) {
@@ -201,6 +208,18 @@ const handleLike = async () => {
   } catch (e) { console.error(e); }
 };
 
+const handleBookmark = async () => {
+  try {
+    const res = await toggleBookmark(post.value.id);
+    post.value.isBookmarked = res.data.bookmarked;
+    uni.setStorageSync('postBookmarkUpdated', {
+      id: post.value.id,
+      isBookmarked: post.value.isBookmarked
+    });
+    uni.showToast({ title: res.msg, icon: 'none' });
+  } catch (e) { console.error(e); }
+};
+
 const sendComment = async () => {
   if (!commentContent.value) return;
   try {
@@ -220,6 +239,7 @@ const previewImage = (index) => {
 };
 
 const goProfile = () => {
+  if (!post.value.pet) return;
   if (isSelf.value) {
     uni.switchTab({ url: '/pages/profile/profile' });
   } else {
@@ -227,7 +247,16 @@ const goProfile = () => {
   }
 };
 
+const goTopic = (topicId, topicName) => {
+  uni.setStorageSync('filterTopic', { id: topicId, name: topicName });
+  uni.$emit('refreshIndex');
+  uni.switchTab({ 
+    url: '/pages/index/index'
+  });
+};
+
 const goUserProfile = (userId) => {
+  if (!userId) return;
   const currentUser = uni.getStorageSync('userInfo');
   if (currentUser && currentUser.id === userId) {
       uni.switchTab({ url: '/pages/profile/profile' });
@@ -240,9 +269,9 @@ const canDeleteComment = (comment) => {
     const userInfo = uni.getStorageSync('userInfo');
     if (!userInfo) return false;
     // 1. 自己的评论
-    if (comment.pet.id === userInfo.id) return true;
+    if (comment.pet && comment.pet.id === userInfo.id) return true;
     // 2. 我是帖子作者，有权删除帖子下的任何评论
-    if (post.value && post.value.pet.id === userInfo.id) return true;
+    if (post.value && post.value.pet && post.value.pet.id === userInfo.id) return true;
     
     return false;
 };
@@ -350,6 +379,19 @@ const handleDeleteComment = (comment) => {
     line-height: 1.8;
     color: #333;
     letter-spacing: 0.5rpx;
+    
+    .topic-list {
+      display: inline-block;
+      margin-bottom: 12rpx;
+    }
+    
+    .topic-tag {
+      color: #71C5DA;
+      font-size: 32rpx;
+      margin-right: 16rpx;
+      font-weight: 500;
+    }
+    
     .text {
       word-break: break-word;
     }

@@ -36,29 +36,49 @@
     </view>
 
     <view class="post-section">
-      <view class="section-title">我的动态</view>
-      <view class="post-list">
+      <view class="tabs">
+        <view class="tab-item" :class="{ active: currentTab === 'posts' }" @click="currentTab = 'posts'">我的动态</view>
+        <view class="tab-item" :class="{ active: currentTab === 'bookmarks' }" @click="currentTab = 'bookmarks'">我的收藏</view>
+      </view>
+
+      <view class="post-list" v-if="currentTab === 'posts'">
         <post-card v-for="post in posts" :key="post.id" :post="post" :show-delete="true" @click="goDetail(post.id)"
           @like="handleLike(post)" @deleted="onPostDeleted" />
         <view v-if="posts.length === 0" class="empty">还没有发布过帖子哦</view>
+      </view>
+
+      <view class="post-list" v-else>
+        <post-card v-for="post in bookmarks" :key="post.id" :post="post" :show-delete="false" @click="goDetail(post.id)"
+          @like="handleLike(post)" />
+        <view v-if="bookmarks.length === 0" class="empty">还没有收藏过帖子哦</view>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
-import { getPetProfile, getPetPosts, likePost } from '@/api/index';
+import { getPetProfile, getPetPosts, likePost, getBookmarkList } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
 const pet = ref({});
 const postCount = ref(0);
 const posts = ref([]);
+const bookmarks = ref([]);
+const currentTab = ref('posts');
 
 const page = ref(1);
 const hasMore = ref(true);
 const loading = ref(false);
+
+watch(currentTab, (newVal) => {
+  if (newVal === 'posts') {
+    loadPosts(true);
+  } else {
+    loadBookmarks(true);
+  }
+});
 
 onShow(() => {
   const likeUpdate = uni.getStorageSync('postLikeUpdated');
@@ -68,8 +88,26 @@ onShow(() => {
       target.liked = likeUpdate.liked;
       target.likeCount = likeUpdate.likeCount;
     }
+    const bTarget = bookmarks.value.find(p => p.id === likeUpdate.id);
+    if (bTarget) {
+      bTarget.liked = likeUpdate.liked;
+      bTarget.likeCount = likeUpdate.likeCount;
+    }
     uni.removeStorageSync('postLikeUpdated');
   }
+  
+  const bookmarkUpdate = uni.getStorageSync('postBookmarkUpdated');
+  if (bookmarkUpdate && bookmarkUpdate.id) {
+    if (!bookmarkUpdate.isBookmarked) {
+      // 移除取消收藏的帖子
+      bookmarks.value = bookmarks.value.filter(p => p.id !== bookmarkUpdate.id);
+    } else if (currentTab.value === 'bookmarks') {
+      // 添加新收藏的帖子 (简单起见，重新加载)
+      loadBookmarks(true);
+    }
+    uni.removeStorageSync('postBookmarkUpdated');
+  }
+
   loadData();
 });
 
@@ -113,7 +151,11 @@ const loadData = async () => {
       uni.setStorageSync('accounts', accounts);
     }
 
-    await loadPosts(true);
+    if (currentTab.value === 'posts') {
+      await loadPosts(true);
+    } else {
+      await loadBookmarks(true);
+    }
 
   } catch (e) {
     console.error(e);
@@ -156,6 +198,51 @@ const loadPosts = async (refresh = false) => {
       posts.value = list;
     } else {
       posts.value = [...posts.value, ...list];
+    }
+    
+    if (list.length < 10) {
+      hasMore.value = false;
+    }
+
+  } catch (e) {
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const loadBookmarks = async (refresh = false) => {
+  if (loading.value && !refresh) return;
+  loading.value = true;
+
+  if (refresh) {
+    page.value = 1;
+    hasMore.value = true;
+    bookmarks.value = [];
+  }
+
+  try {
+    const res = await getBookmarkList({
+        page: page.value,
+        size: 10
+    });
+    const list = res.data.list || [];
+
+    // 处理图片 JSON 解析
+    list.forEach(item => {
+      if (typeof item.images === 'string') {
+        try {
+          item.images = JSON.parse(item.images);
+        } catch (e) {
+          item.images = [];
+        }
+      }
+    });
+
+    if (refresh) {
+      bookmarks.value = list;
+    } else {
+      bookmarks.value = [...bookmarks.value, ...list];
     }
     
     if (list.length < 10) {
@@ -412,22 +499,36 @@ const showSwitchAccount = () => {
 }
 
 .post-section {
-  .section-title {
-    padding: 24rpx 40rpx;
-    font-size: 32rpx;
-    font-weight: 700;
-    color: #333;
-    background-color: transparent;
+  .tabs {
     display: flex;
-    align-items: center;
+    padding: 0 40rpx;
+    margin-bottom: 24rpx;
     
-    &::before {
-      content: '';
-      width: 8rpx;
-      height: 32rpx;
-      background-color: #71C5DA;
-      border-radius: 4rpx;
-      margin-right: 16rpx;
+    .tab-item {
+      font-size: 32rpx;
+      font-weight: 500;
+      color: #999;
+      margin-right: 48rpx;
+      padding-bottom: 12rpx;
+      position: relative;
+      transition: all 0.3s;
+      
+      &.active {
+        color: #333;
+        font-weight: 700;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 40rpx;
+          height: 6rpx;
+          background-color: #71C5DA;
+          border-radius: 4rpx;
+        }
+      }
     }
   }
 

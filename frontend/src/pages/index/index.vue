@@ -15,6 +15,12 @@
         <text v-if="searchQuery" class="clear-icon" @click="clearSearch">✖</text>
       </view>
     </view>
+    
+    <!-- 话题过滤提示 -->
+    <view class="topic-filter-bar" v-if="filterTopic">
+      <text class="topic-filter-text">正在查看话题：#{{ filterTopic.name }}</text>
+      <view class="topic-filter-clear" @click="clearTopicFilter">清除筛选</view>
+    </view>
 
     <!-- 分类 Tab -->
     <scroll-view scroll-x enhanced :show-scrollbar="false" class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
@@ -34,10 +40,10 @@
       <swiper-item>
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
-            <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
+            <post-card v-for="post in (tabData[0] ? tabData[0].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
               @like="handleLike(post)" @follow-change="onFollowChange" />
-            <view v-if="loading" class="loading">加载中...</view>
-            <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
+            <view v-if="tabData[0] && tabData[0].loading" class="loading">加载中...</view>
+            <view v-if="tabData[0] && !tabData[0].loading && tabData[0].posts.length === 0" class="empty">暂无内容</view>
           </view>
         </scroll-view>
       </swiper-item>
@@ -46,14 +52,10 @@
       <swiper-item v-for="cat in categories" :key="cat.id">
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
-            <!-- 这里为了演示简单，所有 swiper-item 共用 posts 数据，
-                  实际生产环境通常会为每个 Tab 维护独立的 list 数据以避免切换时闪烁或重新加载。
-                  但鉴于当前代码结构，切换 Tab 时会重新请求 loadPosts，所以共用一个 posts 也是可行的方案（切换时显示 loading）。
-             -->
-            <post-card v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)"
+            <post-card v-for="post in (tabData[cat.id] ? tabData[cat.id].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
               @like="handleLike(post)" @follow-change="onFollowChange" />
-            <view v-if="loading" class="loading">加载中...</view>
-            <view v-if="!loading && posts.length === 0" class="empty">暂无内容</view>
+            <view v-if="tabData[cat.id] && tabData[cat.id].loading" class="loading">加载中...</view>
+            <view v-if="tabData[cat.id] && !tabData[cat.id].loading && tabData[cat.id].posts.length === 0" class="empty">暂无内容</view>
           </view>
         </scroll-view>
       </swiper-item>
@@ -62,26 +64,42 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { onPullDownRefresh, onShow } from '@dcloudio/uni-app';
 import { getCategories, getPostList, likePost } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
 const categories = ref([]);
 const currentCategory = ref(0);
-const posts = ref([]);
-const page = ref(1);
-const loading = ref(false);
-const hasMore = ref(true);
+// 独立每个 Tab 的数据流
+const tabData = reactive({
+  0: { posts: [], page: 1, hasMore: true, loading: false, loaded: false }
+});
+
 const searchQuery = ref('');
+const filterTopic = ref(null);
+
+const refreshAllTabs = () => {
+  Object.keys(tabData).forEach(key => {
+    tabData[key].loaded = false;
+    tabData[key].posts = [];
+  });
+  loadPosts(true);
+};
 
 const onSearch = () => {
-  loadPosts(true);
+  refreshAllTabs();
 };
 
 const clearSearch = () => {
   searchQuery.value = '';
-  loadPosts(true);
+  refreshAllTabs();
+};
+
+const clearTopicFilter = () => {
+  filterTopic.value = null;
+  uni.removeStorageSync('filterTopic');
+  refreshAllTabs();
 };
 
 // 计算当前 swiper 的 index
@@ -96,29 +114,55 @@ onMounted(async () => {
   await loadCategories();
   // 初始加载
   loadPosts(true);
+
+  // 监听来自其他页面的刷新请求
+  uni.$on('refreshIndex', () => {
+    checkFilterTopic();
+  });
 });
+
+const checkFilterTopic = () => {
+  // 兼容老的 filterTopicId 逻辑和新的 filterTopic 逻辑
+  const storedTopic = uni.getStorageSync('filterTopic');
+  const storedTopicId = uni.getStorageSync('filterTopicId');
+
+  if (storedTopic) {
+    if (!filterTopic.value || filterTopic.value.id !== storedTopic.id) {
+      filterTopic.value = storedTopic;
+      refreshAllTabs();
+    }
+  } else if (storedTopicId) {
+    if (!filterTopic.value || filterTopic.value.id !== storedTopicId) {
+      filterTopic.value = { id: storedTopicId, name: '未命名话题' };
+      refreshAllTabs();
+    }
+  } else if (filterTopic.value) {
+    filterTopic.value = null;
+    refreshAllTabs();
+  } else {
+    // 首次加载或者切回来，如果没有加载过当前分类，则加载
+    const currentTab = tabData[currentCategory.value];
+    if (currentTab && !currentTab.loaded && !currentTab.loading) {
+      loadPosts(true);
+    }
+  }
+};
 
 onShow(() => {
     const likeUpdate = uni.getStorageSync('postLikeUpdated');
     if (likeUpdate && likeUpdate.id) {
-        const target = posts.value.find(p => p.id === likeUpdate.id);
-        if (target) {
-            target.liked = likeUpdate.liked;
-            target.likeCount = likeUpdate.likeCount;
-        }
+        // 更新所有 tab 中对应的帖子
+        Object.keys(tabData).forEach(key => {
+          const target = tabData[key].posts.find(p => p.id === likeUpdate.id);
+          if (target) {
+              target.liked = likeUpdate.liked;
+              target.likeCount = likeUpdate.likeCount;
+          }
+        });
         uni.removeStorageSync('postLikeUpdated');
     }
 
-	loadPosts(true);
-    // const needRefresh = uni.getStorageSync('needRefreshIndex');
-    // if (needRefresh) {
-    //     uni.removeStorageSync('needRefreshIndex');
-    //     loadPosts(true);
-    // } else {
-    //     if (posts.value.length === 0 && !loading.value) {
-    //         loadPosts(true);
-    //     }
-    // }
+    checkFilterTopic();
 });
 
 onPullDownRefresh(() => {
@@ -128,8 +172,9 @@ onPullDownRefresh(() => {
 });
 
 const onScrollToLower = () => {
-  if (hasMore.value) {
-    page.value++;
+  const tab = tabData[currentCategory.value];
+  if (tab && tab.hasMore) {
+    tab.page++;
     loadPosts();
   }
 };
@@ -138,6 +183,10 @@ const loadCategories = async () => {
   try {
     const res = await getCategories();
     categories.value = res.data.list;
+    // 为每个分类初始化数据结构
+    categories.value.forEach(c => {
+      tabData[c.id] = { posts: [], page: 1, hasMore: true, loading: false, loaded: false };
+    });
   } catch (e) {
     console.error(e);
   }
@@ -146,17 +195,10 @@ const loadCategories = async () => {
 const changeCategory = (id) => {
   if (currentCategory.value === id) return;
   currentCategory.value = id;
-  // loadPosts 会在 watch currentCategory 或者 swiper change 中触发吗？
-  // 由于 swiper :current 绑定了 currentSwiperIndex，修改 currentCategory 会导致 swiper 切换
-  // swiper 切换会触发 @change -> onSwiperChange
-  // 所以这里不需要手动调 loadPosts，除非 swiper change 没触发（例如点的是同一个？）
-  // 上面第一行已经判断了 id 不同。
-
-  // 但是，如果仅仅修改 currentCategory，swiper 的 current 变了，会触发动画切换，
-  // 动画切换完成后触发 @change。
-  // 我们希望点击 Tab 立即开始加载数据，还是等滑过去再加载？
-  // 通常点击 Tab 立即加载体验更好。
-  loadPosts(true);
+  // loadPosts 会在 onSwiperChange 中触发，或者这里直接触发
+  if (!tabData[id].loaded) {
+    loadPosts(true);
+  }
 };
 
 const onSwiperChange = (e) => {
@@ -170,26 +212,32 @@ const onSwiperChange = (e) => {
 
   if (currentCategory.value !== targetCatId) {
     currentCategory.value = targetCatId;
-    loadPosts(true);
+    if (!tabData[targetCatId].loaded) {
+      loadPosts(true);
+    }
   }
 };
 
 const loadPosts = async (refresh = false) => {
-  // 防止切换太快导致的数据错乱，可以加一个 cancel token 机制，这里简化处理
-  if (loading.value && !refresh) return;
-  loading.value = true;
+  const catId = currentCategory.value;
+  const tab = tabData[catId];
+  if (!tab) return;
+
+  if (tab.loading && !refresh) return;
+  tab.loading = true;
 
   if (refresh) {
-    page.value = 1;
-    hasMore.value = true;
-    posts.value = []; // 清空，显示 loading
+    tab.page = 1;
+    tab.hasMore = true;
+    tab.posts = []; // 清空，显示 loading
   }
 
   try {
     const res = await getPostList({
-      categoryId: currentCategory.value || undefined,
+      categoryId: catId || undefined,
+      topicId: filterTopic.value?.id || undefined,
       keyword: searchQuery.value || '',
-      page: page.value,
+      page: tab.page,
       pageSize: 10
     });
 
@@ -206,18 +254,19 @@ const loadPosts = async (refresh = false) => {
     });
 
     if (refresh) {
-      posts.value = list;
+      tab.posts = list;
     } else {
-      posts.value = [...posts.value, ...list];
+      tab.posts = [...tab.posts, ...list];
     }
-
+    
+    tab.loaded = true;
     if (list.length < 10) {
-      hasMore.value = false;
+      tab.hasMore = false;
     }
   } catch (e) {
     console.error(e);
   } finally {
-    loading.value = false;
+    tab.loading = false;
   }
 };
 
@@ -256,14 +305,18 @@ const handleLike = async (post) => {
 };
 
 const onPostDeleted = (postId) => {
-  posts.value = posts.value.filter(p => p.id !== postId);
+  Object.keys(tabData).forEach(key => {
+    tabData[key].posts = tabData[key].posts.filter(p => p.id !== postId);
+  });
 };
 
 const onFollowChange = ({ petId, isFollowing }) => {
-  posts.value.forEach(post => {
-    if (post.pet.id === petId) {
-      post.isFollowing = isFollowing;
-    }
+  Object.keys(tabData).forEach(key => {
+    tabData[key].posts.forEach(post => {
+      if (post.pet.id === petId) {
+        post.isFollowing = isFollowing;
+      }
+    });
   });
 };
 </script>
@@ -308,6 +361,28 @@ const onFollowChange = ({ petId, isFollowing }) => {
       color: #ccc;
       padding: 10rpx;
     }
+  }
+}
+
+.topic-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16rpx 30rpx;
+  background-color: #E8F6FA;
+  
+  .topic-filter-text {
+    font-size: 26rpx;
+    color: #71C5DA;
+    font-weight: 500;
+  }
+  
+  .topic-filter-clear {
+    font-size: 24rpx;
+    color: #999;
+    padding: 6rpx 16rpx;
+    background-color: #fff;
+    border-radius: 20rpx;
   }
 }
 

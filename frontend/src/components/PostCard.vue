@@ -1,10 +1,10 @@
 <template>
   <view class="post-card" @click="$emit('click')">
     <view class="post-header">
-      <image class="avatar" :src="post.pet.avatar || '/static/default-avatar.png'" mode="aspectFill"
+      <image class="avatar" :src="post.pet?.avatar || '/static/default-avatar.png'" mode="aspectFill"
         @click.stop="goProfile" />
       <view class="info" @click.stop="goProfile">
-        <text class="name">{{ post.pet.petName }}</text>
+        <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
 
@@ -20,6 +20,9 @@
     </view>
 
     <view class="post-content">
+      <view class="topic-list" v-if="post.topics && post.topics.length > 0">
+        <text class="topic-tag" v-for="topic in post.topics" :key="topic.id" @click.stop="goTopic(topic.id, topic.name)">#{{ topic.name }}#</text>
+      </view>
       <text class="text">{{ post.content }}</text>
     </view>
 
@@ -83,6 +86,7 @@ const formatTime = (time) => {
 };
 
 const handleFollowAction = async () => {
+  if (!props.post.pet) return;
   const targetId = props.post.pet.id;
   try {
     if (isFollowing.value) {
@@ -127,11 +131,22 @@ const handleDelete = () => {
 };
 
 const goProfile = () => {
+  if (!props.post.pet) return;
   if (isSelf.value) {
     uni.switchTab({ url: '/pages/profile/profile' });
   } else {
     uni.navigateTo({ url: `/pages/profile/other?id=${props.post.pet.id}` });
   }
+};
+
+const goTopic = (topicId, topicName) => {
+  // 点击话题跳转到首页并带上 topic信息
+  uni.setStorageSync('filterTopic', { id: topicId, name: topicName });
+  // 先触发事件，因为如果当前已经在首页，switchTab 可能会走 fail 回调而不是 success
+  uni.$emit('refreshIndex');
+  uni.switchTab({ 
+    url: '/pages/index/index'
+  });
 };
 </script>
 
@@ -213,7 +228,18 @@ const goProfile = () => {
 
   .post-content {
     margin-bottom: 24rpx;
-    overflow: hidden;
+    
+    .topic-list {
+      display: inline-block;
+      margin-bottom: 8rpx;
+    }
+    
+    .topic-tag {
+      color: #71C5DA;
+      font-size: 30rpx;
+      margin-right: 12rpx;
+      font-weight: 500;
+    }
 
     .text {
       font-size: 30rpx;

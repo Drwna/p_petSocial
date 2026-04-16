@@ -1,6 +1,6 @@
 const express = require('express');
 const { Op } = require('sequelize');
-const { Post, Pet, Category, PostLike, Comment, Follow } = require('../models');
+const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark } = require('../models');
 const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -14,6 +14,7 @@ router.post('/create', auth, async (req, res) => {
     const content = req.body.content;
     const images = req.body.images || [];
     const categoryId = parseInt(req.body.categoryId);
+    const topicIds = req.body.topicIds || [];
 
     if (!categoryId) {
       return res.status(400).json({
@@ -23,12 +24,18 @@ router.post('/create', auth, async (req, res) => {
     }
 
     // 创建帖子
-    await Post.create({
+    const post = await Post.create({
       petId: req.petId,
       content,
       images,
       categoryId
     });
+
+    // 如果有关联话题，建立关联并增加话题的帖子数
+    if (topicIds && topicIds.length > 0) {
+      await post.setTopics(topicIds);
+      await Topic.increment('postCount', { by: 1, where: { id: topicIds } });
+    }
 
     res.json({
       code: 0,
@@ -81,13 +88,51 @@ router.post('/delete', auth, async (req, res) => {
 // 获取帖子列表（首页）
 router.get('/list', async (req, res) => {
   try {
-    const { categoryId, keyword, page = 1, pageSize = 10 } = req.query;
+    const { categoryId, topicId, keyword, page = 1, pageSize = 10 } = req.query;
 
     const offset = (page - 1) * pageSize;
     const where = { isDeleted: 0 };
 
     if (categoryId && categoryId !== 'undefined') {
       where.categoryId = categoryId;
+    }
+    
+    // 构建 include 数组
+    const includeOptions = [
+      {
+        model: Pet,
+        as: 'pet',
+        attributes: ['id', 'petName', 'avatar']
+      },
+      {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'name']
+      }
+    ];
+    
+    if (topicId && topicId !== 'undefined') {
+      // 筛选包含特定话题的帖子
+      includeOptions.push({
+        model: Topic,
+        as: 'topics',
+        where: { id: topicId },
+        through: { attributes: [] },
+        attributes: ['id', 'name']
+      });
+      
+      // 增加话题浏览量
+      if (page == 1) {
+        await Topic.increment('viewCount', { by: 1, where: { id: topicId } });
+      }
+    } else {
+      // 不筛选特定话题时，正常包含所有话题
+      includeOptions.push({
+        model: Topic,
+        as: 'topics',
+        through: { attributes: [] },
+        attributes: ['id', 'name']
+      });
     }
 
     if (keyword && keyword.trim()) {
@@ -98,22 +143,33 @@ router.get('/list', async (req, res) => {
 
     const { rows: posts, count } = await Post.findAndCountAll({
       where,
-      include: [
-        {
-          model: Pet,
-          as: 'pet',
-          attributes: ['id', 'petName', 'avatar']
-        },
-        {
-          model: Category,
-          as: 'category',
-          attributes: ['id', 'name']
-        }
-      ],
+      include: includeOptions,
       order: [['createTime', 'DESC']],
       limit: parseInt(pageSize),
-      offset: offset
+      offset: offset,
+      distinct: true // 当使用 include 且有一对多关系时，确保 count 准确
     });
+
+    // 如果通过 topicId 筛选，为了让帖子显示完整的所有标签，需要再次查询（因为上面的 include where 限制了只返回匹配的那一个标签）
+    if (topicId && topicId !== 'undefined' && posts.length > 0) {
+      const postIds = posts.map(p => p.id);
+      const postsWithAllTopics = await Post.findAll({
+        where: { id: { [Op.in]: postIds } },
+        include: [{
+          model: Topic,
+          as: 'topics',
+          through: { attributes: [] },
+          attributes: ['id', 'name']
+        }]
+      });
+      // 手动合并标签
+      posts.forEach(post => {
+        const fullPost = postsWithAllTopics.find(p => p.id === post.id);
+        if (fullPost) {
+          post.topics = fullPost.topics;
+        }
+      });
+    }
 
     // 获取当前用户ID (如果已登录)
     let currentPetId = null;
@@ -134,6 +190,7 @@ router.get('/list', async (req, res) => {
       
       let liked = false;
       let isFollowing = false;
+      let isBookmarked = false;
 
       if (currentPetId) {
         // 检查点赞状态
@@ -149,6 +206,12 @@ router.get('/list', async (req, res) => {
           });
           isFollowing = !!follow;
         }
+
+        // 检查收藏状态
+        const bookmark = await Bookmark.findOne({
+          where: { postId: post.id, petId: currentPetId }
+        });
+        isBookmarked = !!bookmark;
       }
 
       return {
@@ -156,7 +219,8 @@ router.get('/list', async (req, res) => {
         likeCount,
         commentCount,
         liked,
-        isFollowing
+        isFollowing,
+        isBookmarked
       };
     }));
     
@@ -196,6 +260,12 @@ router.get('/:id', async (req, res) => {
           model: Category,
           as: 'category',
           attributes: ['id', 'name']
+        },
+        {
+          model: Topic,
+          as: 'topics',
+          attributes: ['id', 'name'],
+          through: { attributes: [] }
         }
       ]
     });
@@ -213,6 +283,7 @@ router.get('/:id', async (req, res) => {
 
     // 检查当前宠物是否已点赞（根据 token 解析当前用户，保持与列表接口一致的逻辑）
     let liked = false;
+    let isBookmarked = false;
     let currentPetId = null;
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (token) {
@@ -229,6 +300,11 @@ router.get('/:id', async (req, res) => {
         where: { postId: post.id, petId: currentPetId }
       });
       liked = !!postLike;
+
+      const bookmark = await Bookmark.findOne({
+        where: { postId: post.id, petId: currentPetId }
+      });
+      isBookmarked = !!bookmark;
     }
 
     res.json({
@@ -238,7 +314,8 @@ router.get('/:id', async (req, res) => {
         ...post.toJSON(),
         likeCount,
         commentCount,
-        liked
+        liked,
+        isBookmarked
       }
     });
   } catch (error) {
