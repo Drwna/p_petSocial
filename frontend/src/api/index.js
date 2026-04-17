@@ -132,6 +132,37 @@ export const featurePost = (postId, isFeatured) => {
   });
 };
 
+export const dislikePost = (postId) => {
+  return request({
+    url: '/api/post/dislike',
+    method: 'POST',
+    data: { postId }
+  });
+};
+
+export const blockPet = (blockedPetId) => {
+  return request({
+    url: '/api/pet/block',
+    method: 'POST',
+    data: { blockedPetId }
+  });
+};
+
+export const getBlockList = () => {
+  return request({
+    url: '/api/pet/block/list',
+    method: 'GET'
+  });
+};
+
+export const unblockPet = (blockedPetId) => {
+  return request({
+    url: '/api/pet/unblock',
+    method: 'POST',
+    data: { blockedPetId }
+  });
+};
+
 // 分类与话题
 export const getCategories = () => {
   return request({

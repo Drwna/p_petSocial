@@ -44,7 +44,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData['recommend'] ? tabData['recommend'].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" @disliked="onDisliked" />
             <view v-if="tabData['recommend'] && tabData['recommend'].loading" class="loading">加载中...</view>
             <view v-if="tabData['recommend'] && !tabData['recommend'].loading && tabData['recommend'].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -56,7 +56,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData[0] ? tabData[0].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" @disliked="onDisliked" />
             <view v-if="tabData[0] && tabData[0].loading" class="loading">加载中...</view>
             <view v-if="tabData[0] && !tabData[0].loading && tabData[0].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -68,7 +68,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData[cat.id] ? tabData[cat.id].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" @disliked="onDisliked" />
             <view v-if="tabData[cat.id] && tabData[cat.id].loading" class="loading">加载中...</view>
             <view v-if="tabData[cat.id] && !tabData[cat.id].loading && tabData[cat.id].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -348,6 +348,32 @@ const onUpdatePost = (updatedPost) => {
       Object.assign(tabData[key].posts[idx], updatedPost);
     }
   });
+};
+
+const findPostById = (postId) => {
+  for (const key in tabData) {
+    const post = tabData[key].posts.find(p => p.id === postId);
+    if (post) return post;
+  }
+  return null;
+};
+
+const onDisliked = (postId, isBlockAuthor = false) => {
+  if (isBlockAuthor) {
+    // 屏蔽作者：从所有 tab 中移除该作者的所有帖子
+    const postToRemove = findPostById(postId);
+    if (postToRemove && postToRemove.petId) {
+      const blockedPetId = postToRemove.petId;
+      Object.keys(tabData).forEach(key => {
+        tabData[key].posts = tabData[key].posts.filter(p => p.petId !== blockedPetId);
+      });
+    }
+  } else {
+    // 不感兴趣：仅从所有 tab 中移除该动态
+    Object.keys(tabData).forEach(key => {
+      tabData[key].posts = tabData[key].posts.filter(p => p.id === postId ? false : true);
+    });
+  }
 };
 </script>
 

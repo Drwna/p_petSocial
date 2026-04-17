@@ -62,6 +62,12 @@
 			"style": {
 				"navigationBarTitleText": "关注列表"
 			}
+		},
+		{
+			"path": "pages/user/blocklist",
+			"style": {
+				"navigationBarTitleText": "屏蔽管理"
+			}
 		}
 	],
 	"globalStyle": {

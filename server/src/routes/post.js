@@ -1,7 +1,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const sequelize = require('../config/db');
-const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark } = require('../models');
+const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark, BlockPet, PostDislike } = require('../models');
 const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -124,13 +124,65 @@ router.post('/:id/feature', auth, async (req, res) => {
   }
 });
 
+// 不感兴趣/屏蔽动态
+router.post('/dislike', auth, async (req, res) => {
+  try {
+    const { postId } = req.body;
+    if (!postId) {
+      return res.status(400).json({ code: 400, msg: '缺少postId' });
+    }
+
+    await PostDislike.findOrCreate({
+      where: { petId: req.petId, postId }
+    });
+
+    res.json({ code: 0, msg: '操作成功' });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
+  }
+});
+
 // 获取帖子列表（首页）
 router.get('/list', async (req, res) => {
   try {
     const { categoryId, topicId, keyword, page = 1, pageSize = 10 } = req.query;
 
+    // 获取当前用户ID (如果已登录)
+    let currentPetId = null;
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        currentPetId = decoded.petId;
+      } catch (e) {
+        // ignore
+      }
+    }
+
     const offset = (page - 1) * pageSize;
     const where = { isDeleted: 0 };
+
+    if (currentPetId) {
+      // 过滤掉不感兴趣的动态
+      const dislikedPosts = await PostDislike.findAll({
+        where: { petId: currentPetId },
+        attributes: ['postId']
+      });
+      const dislikedPostIds = dislikedPosts.map(d => d.postId);
+      if (dislikedPostIds.length > 0) {
+        where.id = { [Op.notIn]: dislikedPostIds };
+      }
+
+      // 过滤掉屏蔽的作者
+      const blockedPets = await BlockPet.findAll({
+        where: { blockerPetId: currentPetId },
+        attributes: ['blockedPetId']
+      });
+      const blockedPetIds = blockedPets.map(b => b.blockedPetId);
+      if (blockedPetIds.length > 0) {
+        where.petId = { [Op.notIn]: blockedPetIds };
+      }
+    }
 
     if (categoryId && categoryId !== 'undefined') {
       where.categoryId = categoryId;
@@ -221,18 +273,6 @@ router.get('/list', async (req, res) => {
           post.topics = fullPost.topics;
         }
       });
-    }
-
-    // 获取当前用户ID (如果已登录)
-    let currentPetId = null;
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        currentPetId = decoded.petId;
-      } catch (e) {
-        // ignore
-      }
     }
 
     // 获取每个帖子的点赞数、评论数、点赞状态和关注状态

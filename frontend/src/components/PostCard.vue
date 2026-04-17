@@ -21,6 +21,11 @@
       <view class="delete-btn" v-if="(isSelf || isAdmin) && showDelete" @click.stop="handleDelete">
         <image src="/static/delete.svg" class="delete-icon" />
       </view>
+
+      <!-- 更多操作 (不感兴趣/屏蔽) -->
+      <view class="more-btn" v-if="!isSelf" @click.stop="handleMore">
+        <text class="more-icon">···</text>
+      </view>
     </view>
 
     <view class="post-content">
@@ -57,7 +62,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { deletePost, followPet, unfollowPet, pinPost, featurePost } from '@/api/index';
+import { deletePost, followPet, unfollowPet, pinPost, featurePost, dislikePost, blockPet } from '@/api/index';
 
 const props = defineProps({
   post: {
@@ -70,7 +75,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['click', 'like', 'deleted', 'follow-change', 'update-post']);
+const emit = defineEmits(['click', 'like', 'deleted', 'follow-change', 'update-post', 'disliked']);
 
 const isFollowing = ref(props.post.isFollowing || false);
 
@@ -107,6 +112,42 @@ const handleFeature = async () => {
   } catch (e) {
     console.error(e);
   }
+};
+
+const handleMore = () => {
+  const options = ['不感兴趣', '屏蔽作者'];
+  uni.showActionSheet({
+    itemList: options,
+    success: async (res) => {
+      if (res.tapIndex === 0) {
+        // 不感兴趣
+        try {
+          await dislikePost(props.post.id);
+          uni.showToast({ title: '已减少此类内容推荐', icon: 'none' });
+          emit('disliked', props.post.id);
+        } catch (e) {
+          console.error(e);
+        }
+      } else if (res.tapIndex === 1) {
+        // 屏蔽作者
+        uni.showModal({
+          title: '提示',
+          content: `确定屏蔽作者 ${props.post.pet?.petName} 吗？屏蔽后将不再看到该作者的内容。`,
+          success: async (modalRes) => {
+            if (modalRes.confirm) {
+              try {
+                await blockPet(props.post.petId);
+                uni.showToast({ title: '已屏蔽该作者', icon: 'none' });
+                emit('disliked', props.post.id, true); // true 表示屏蔽了作者，可能需要刷新列表或移除该作者的所有帖子
+              } catch (e) {
+                console.error(e);
+              }
+            }
+          }
+        });
+      }
+    }
+  });
 };
 
 const formatTime = (time) => {
@@ -297,6 +338,22 @@ const goTopic = (topicId, topicName) => {
         width: 32rpx;
         height: 32rpx;
         display: block;
+      }
+    }
+
+    .more-btn {
+      padding: 12rpx 20rpx;
+      flex-shrink: 0;
+      
+      .more-icon {
+        font-size: 36rpx;
+        color: #999;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      &:active {
+        opacity: 0.7;
       }
     }
   }

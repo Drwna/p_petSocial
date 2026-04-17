@@ -1,5 +1,5 @@
 const express = require('express');
-const { Pet, Post, Category, PostLike, Comment } = require('../models');
+const { Pet, Post, Category, PostLike, Comment, BlockPet } = require('../models');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -46,7 +46,7 @@ router.get('/profile', auth, async (req, res) => {
 //                     "id": 3,
 //                     "name": "成长记录"
 //                 },
-router.get('/posts',auth, async (req, res) => {
+router.get('/posts', auth, async (req, res) => {
   try {
     const { page = 1, size = 10 } = req.query;
 
@@ -280,6 +280,67 @@ router.get('/search', auth, async (req, res) => {
       msg: '请求百科搜索服务异常',
       error: error.message
     });
+  }
+});
+
+// 屏蔽作者
+router.post('/block', auth, async (req, res) => {
+  try {
+    const { blockedPetId } = req.body;
+    if (!blockedPetId) {
+      return res.status(400).json({ code: 400, msg: '缺少blockedPetId' });
+    }
+
+    if (blockedPetId === req.petId) {
+      return res.status(400).json({ code: 400, msg: '不能屏蔽自己' });
+    }
+
+    await BlockPet.findOrCreate({
+      where: { blockerPetId: req.petId, blockedPetId }
+    });
+
+    res.json({ code: 0, msg: '已屏蔽该作者' });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
+  }
+});
+
+// 获取屏蔽列表
+router.get('/block/list', auth, async (req, res) => {
+  try {
+    const blocks = await BlockPet.findAll({
+      where: { blockerPetId: req.petId },
+      include: [{
+        model: Pet,
+        as: 'blocked',
+        attributes: ['id', 'petName', 'avatar']
+      }]
+    });
+
+    res.json({
+      code: 0,
+      data: blocks.map(b => b.blocked)
+    });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '获取列表失败', error: error.message });
+  }
+});
+
+// 取消屏蔽
+router.post('/unblock', auth, async (req, res) => {
+  try {
+    const { blockedPetId } = req.body;
+    if (!blockedPetId) {
+      return res.status(400).json({ code: 400, msg: '缺少blockedPetId' });
+    }
+
+    await BlockPet.destroy({
+      where: { blockerPetId: req.petId, blockedPetId }
+    });
+
+    res.json({ code: 0, msg: '已取消屏蔽' });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
   }
 });
 

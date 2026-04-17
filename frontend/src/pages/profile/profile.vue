@@ -32,6 +32,7 @@
       <view class="action-row">
         <button class="btn edit-btn" @click="goEdit">编辑资料</button>
         <button class="btn switch-btn" @click="showSwitchAccount">切换账号</button>
+        <button class="btn block-btn" @click="goBlockList">屏蔽管理</button>
       </view>
     </view>
 
@@ -267,6 +268,10 @@ const goFollowList = (type) => {
   uni.navigateTo({ url: `/pages/follow/list?type=${type}` });
 };
 
+const goBlockList = () => {
+  uni.navigateTo({ url: '/pages/user/blocklist' });
+};
+
 const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/post/detail?id=${id}` });
 };
@@ -496,6 +501,12 @@ const showSwitchAccount = () => {
         background-color: #fff;
         color: #71C5DA;
         border: 2rpx solid #71C5DA;
+      }
+
+      &.block-btn {
+        background-color: #fff;
+        color: #999;
+        border: 2rpx solid #eee;
       }
     }
   }

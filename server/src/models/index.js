@@ -9,6 +9,8 @@ const VerificationCode = require('./VerificationCode');
 const Topic = require('./Topic');
 const PostTopic = require('./PostTopic');
 const Bookmark = require('./Bookmark');
+const BlockPet = require('./BlockPet');
+const PostDislike = require('./PostDislike');
 
 // 建立模型关系
 // Account 与 Pet 是一对一关系
@@ -56,6 +58,17 @@ Pet.hasMany(Bookmark, { foreignKey: 'petId', sourceKey: 'id', as: 'bookmarks' })
 Bookmark.belongsTo(Post, { foreignKey: 'postId', targetKey: 'id', as: 'post' });
 Post.hasMany(Bookmark, { foreignKey: 'postId', sourceKey: 'id', as: 'bookmarks' });
 
+// BlockPet 与 Pet 的关系
+BlockPet.belongsTo(Pet, { as: 'blocker', foreignKey: 'blockerPetId', targetKey: 'id' });
+BlockPet.belongsTo(Pet, { as: 'blocked', foreignKey: 'blockedPetId', targetKey: 'id' });
+
+// PostDislike 与 Pet 和 Post 的关系
+PostDislike.belongsTo(Pet, { foreignKey: 'petId', targetKey: 'id', as: 'pet' });
+Pet.hasMany(PostDislike, { foreignKey: 'petId', sourceKey: 'id', as: 'dislikes' });
+
+PostDislike.belongsTo(Post, { foreignKey: 'postId', targetKey: 'id', as: 'post' });
+Post.hasMany(PostDislike, { foreignKey: 'postId', sourceKey: 'id', as: 'dislikes' });
+
 module.exports = {
   Account,
   Pet,
@@ -67,5 +80,7 @@ module.exports = {
   VerificationCode,
   Topic,
   PostTopic,
-  Bookmark
+  Bookmark,
+  BlockPet,
+  PostDislike
 };

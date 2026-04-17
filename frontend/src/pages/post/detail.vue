@@ -15,6 +15,11 @@
         <!-- 关注按钮 -->
         <button v-if="!isSelf && !isFollowing" class="follow-btn" @click="handleFollow">关注</button>
         <button v-if="!isSelf && isFollowing" class="follow-btn followed" @click="handleUnfollow">已关注</button>
+        
+        <!-- 更多操作 -->
+        <view class="more-btn" v-if="!isSelf" @click.stop="handleMore">
+          <text class="more-icon">···</text>
+        </view>
       </view>
 
       <view class="post-content">
@@ -76,7 +81,7 @@
 <script setup>
 import { ref } from 'vue';
 import { onLoad, onReachBottom } from '@dcloudio/uni-app';
-import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment, toggleBookmark } from '@/api/index';
+import { getPostDetail, getCommentList, createComment, likePost, followPet, unfollowPet, getFollowStatus, deleteComment, toggleBookmark, dislikePost, blockPet } from '@/api/index';
 
 const post = ref(null);
 const comments = ref([]);
@@ -195,8 +200,48 @@ const handleUnfollow = async () => {
   try {
     await unfollowPet(post.value.pet.id);
     isFollowing.value = false;
-    uni.showToast({ title: '已取消关注' });
+    uni.showToast({ title: '已取消关注', icon: 'none' });
   } catch (e) { console.error(e); }
+};
+
+const handleMore = () => {
+  const options = ['不感兴趣', '屏蔽作者'];
+  uni.showActionSheet({
+    itemList: options,
+    success: async (res) => {
+      if (res.tapIndex === 0) {
+        // 不感兴趣
+        try {
+          await dislikePost(post.value.id);
+          uni.showToast({ title: '已减少此类内容推荐', icon: 'none' });
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 1000);
+        } catch (e) {
+          console.error(e);
+        }
+      } else if (res.tapIndex === 1) {
+        // 屏蔽作者
+        uni.showModal({
+          title: '提示',
+          content: `确定屏蔽作者 ${post.value.pet?.petName} 吗？屏蔽后将不再看到该作者的内容。`,
+          success: async (modalRes) => {
+            if (modalRes.confirm) {
+              try {
+                await blockPet(post.value.pet.id);
+                uni.showToast({ title: '已屏蔽该作者', icon: 'none' });
+                setTimeout(() => {
+                  uni.navigateBack();
+                }, 1000);
+              } catch (e) {
+                console.error(e);
+              }
+            }
+          }
+        });
+      }
+    }
+  });
 };
 
 const handleLike = async () => {
@@ -398,6 +443,22 @@ const handleDeleteComment = (comment) => {
         background: #f5f5f5;
         color: #999;
         box-shadow: none;
+      }
+    }
+
+    .more-btn {
+      padding: 12rpx 20rpx;
+      flex-shrink: 0;
+      
+      .more-icon {
+        font-size: 40rpx;
+        color: #999;
+        font-weight: bold;
+        line-height: 1;
+      }
+
+      &:active {
+        opacity: 0.7;
       }
     }
     
