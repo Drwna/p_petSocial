@@ -136,14 +136,17 @@ const loadData = async () => {
     pet.value = profileRes.data.pet;
     postCount.value = profileRes.data.postCount;
 
+    // 合并从后端获取的 pet 信息，但保留本地存储中的 role 字段
+    const updatedUserInfo = { ...pet.value, role: userInfo.role };
+
     // 同步更新本地缓存
-    uni.setStorageSync('userInfo', pet.value);
+    uni.setStorageSync('userInfo', updatedUserInfo);
     let accounts = uni.getStorageSync('accounts') || [];
     let accountsChanged = false;
     accounts = accounts.map(acc => {
-      if (acc.pet && acc.pet.id === pet.value.id) {
+      if (acc.pet && acc.pet.id === updatedUserInfo.id) {
         accountsChanged = true;
-        return { ...acc, pet: pet.value };
+        return { ...acc, pet: updatedUserInfo };
       }
       return acc;
     });

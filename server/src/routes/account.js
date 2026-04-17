@@ -111,7 +111,8 @@ router.post('/login-code', async (req, res) => {
           id: account.pet.id,
           petName: account.pet.petName,
           avatar: account.pet.avatar
-        }
+        },
+        role: account.role
       }
     });
   } catch (error) {

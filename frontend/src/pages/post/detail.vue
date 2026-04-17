@@ -5,7 +5,11 @@
       <view class="post-header">
         <image class="avatar" :src="post.pet?.avatar || '/static/default-avatar.png'" mode="aspectFill" @click="goProfile" />
         <view class="info" @click="goProfile">
-          <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
+          <view class="name-row">
+            <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
+            <text class="badge pin-badge" v-if="post.isPinned">置顶</text>
+            <text class="badge feature-badge" v-if="post.isFeatured">精品</text>
+          </view>
           <text class="time">{{ formatTime(post.createTime) }}</text>
         </view>
         <!-- 关注按钮 -->
@@ -331,12 +335,44 @@ const handleDeleteComment = (comment) => {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      margin-right: 16rpx;
+
+      .name-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6rpx;
+      }
 
       .name {
         font-weight: 700;
         font-size: 34rpx;
         color: #333;
-        margin-bottom: 6rpx;
+        margin-right: 12rpx;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-shrink: 1;
+      }
+
+      .badge {
+        font-size: 20rpx;
+        padding: 2rpx 8rpx;
+        border-radius: 4rpx;
+        margin-right: 8rpx;
+        font-weight: normal;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      .pin-badge {
+        background-color: #ffe58f;
+        color: #d46b08;
+      }
+
+      .feature-badge {
+        background-color: #ffccc7;
+        color: #cf1322;
       }
 
       .time {
@@ -355,6 +391,8 @@ const handleDeleteComment = (comment) => {
       border-radius: 28rpx;
       font-weight: 600;
       box-shadow: 0 4rpx 10rpx rgba(113, 197, 218, 0.2);
+      flex-shrink: 0;
+      white-space: nowrap;
 
       &.followed {
         background: #f5f5f5;
@@ -366,6 +404,7 @@ const handleDeleteComment = (comment) => {
     .delete-btn {
         padding: 12rpx;
         margin-left: 16rpx;
+        flex-shrink: 0;
         .delete-icon {
             width: 36rpx;
             height: 36rpx;

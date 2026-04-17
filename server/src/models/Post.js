@@ -30,6 +30,14 @@ const Post = sequelize.define('Post', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  isPinned: {
+    type: DataTypes.TINYINT,
+    defaultValue: 0
+  },
+  isFeatured: {
+    type: DataTypes.TINYINT,
+    defaultValue: 0
+  },
   createTime: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

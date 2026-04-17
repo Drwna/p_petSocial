@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/db');
-const { Category, Topic } = require('./models');
+const { Category, Topic, Account, Pet } = require('./models');
 require('dotenv').config();
 
 const app = express();
@@ -65,6 +65,29 @@ const initDatabase = async () => {
         { name: '铲屎官日常', postCount: 0, viewCount: 0 }
       ];
       await Topic.bulkCreate(topics);
+    }
+
+    // 自动初始化管理员账号
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@petsocial.com';
+    let existingAdmin = await Account.findOne({ where: { email: adminEmail } });
+    if (!existingAdmin) {
+      const pet = await Pet.create({
+        petName: 'Admin',
+        petType: '4', // 4-其他
+        gender: '0',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+        intro: 'System Administrator'
+      });
+      
+      await Account.create({
+        email: adminEmail,
+        petId: pet.id,
+        role: 'admin'
+      });
+      console.log(`管理员账号初始化成功: ${adminEmail}`);
+    } else if (existingAdmin.role !== 'admin') {
+      await existingAdmin.update({ role: 'admin' });
+      console.log(`已将账号 ${adminEmail} 升级为管理员`);
     }
 
     console.log('数据库初始化成功');

@@ -65,8 +65,13 @@ const handleLogin = async () => {
     const res = await login({ email: email.value, code: captcha.value });
     // 保存 token
     uni.setStorageSync('token', res.data.token);
+    
+    // 合并角色信息到 pet 对象中
+    const petInfo = res.data.pet;
+    petInfo.role = res.data.role;
+    
     // 保存用户信息
-    uni.setStorageSync('userInfo', res.data.pet);
+    uni.setStorageSync('userInfo', petInfo);
     
     // 保存到多账号列表
     let accounts = uni.getStorageSync('accounts') || [];
@@ -74,7 +79,7 @@ const handleLogin = async () => {
     accounts.push({ 
         email: email.value, 
         token: res.data.token, 
-        pet: res.data.pet,
+        pet: petInfo,
         lastLogin: Date.now()
     });
     uni.setStorageSync('accounts', accounts);

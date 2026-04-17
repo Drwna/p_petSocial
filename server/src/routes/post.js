@@ -86,6 +86,44 @@ router.post('/delete', auth, async (req, res) => {
   }
 });
 
+// 置顶/取消置顶帖子
+router.post('/:id/pin', auth, async (req, res) => {
+  try {
+    if (req.role !== 'admin') {
+      return res.status(403).json({ code: 403, msg: '无权操作' });
+    }
+    const { id } = req.params;
+    const { isPinned } = req.body;
+    const post = await Post.findByPk(id);
+    if (!post) {
+      return res.status(404).json({ code: 404, msg: '帖子不存在' });
+    }
+    await post.update({ isPinned: isPinned ? 1 : 0 });
+    res.json({ code: 0, msg: isPinned ? '置顶成功' : '已取消置顶' });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
+  }
+});
+
+// 设置/取消精品帖子
+router.post('/:id/feature', auth, async (req, res) => {
+  try {
+    if (req.role !== 'admin') {
+      return res.status(403).json({ code: 403, msg: '无权操作' });
+    }
+    const { id } = req.params;
+    const { isFeatured } = req.body;
+    const post = await Post.findByPk(id);
+    if (!post) {
+      return res.status(404).json({ code: 404, msg: '帖子不存在' });
+    }
+    await post.update({ isFeatured: isFeatured ? 1 : 0 });
+    res.json({ code: 0, msg: isFeatured ? '已设为精品' : '已取消精品' });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
+  }
+});
+
 // 获取帖子列表（首页）
 router.get('/list', async (req, res) => {
   try {
@@ -142,10 +180,14 @@ router.get('/list', async (req, res) => {
       };
     }
 
-    let orderOption = [['createTime', 'DESC']];
+    let orderOption = [
+      ['isPinned', 'DESC'],
+      ['createTime', 'DESC']
+    ];
     if (req.query.isRecommend === '1') {
-      // 推荐流：综合点赞数和评论数排序，并结合时间
+      // 推荐流：综合点赞数和评论数排序，并结合时间，但置顶仍然优先
       orderOption = [
+        ['isPinned', 'DESC'],
         [sequelize.literal('((SELECT COUNT(*) FROM post_like WHERE post_like.postId = `Post`.`id`) * 2 + (SELECT COUNT(*) FROM comment WHERE comment.postId = `Post`.`id` AND comment.isDeleted = 0) * 3)'), 'DESC'],
         ['createTime', 'DESC']
       ];

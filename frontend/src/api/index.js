@@ -116,6 +116,22 @@ export const getPostDetail = (postId) => {
   });
 };
 
+export const pinPost = (postId, isPinned) => {
+  return request({
+    url: `/api/post/${postId}/pin`,
+    method: 'POST',
+    data: { isPinned }
+  });
+};
+
+export const featurePost = (postId, isFeatured) => {
+  return request({
+    url: `/api/post/${postId}/feature`,
+    method: 'POST',
+    data: { isFeatured }
+  });
+};
+
 // 分类与话题
 export const getCategories = () => {
   return request({

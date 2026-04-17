@@ -4,7 +4,11 @@
       <image class="avatar" :src="post.pet?.avatar || '/static/default-avatar.png'" mode="aspectFill"
         @click.stop="goProfile" />
       <view class="info" @click.stop="goProfile">
-        <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
+        <view class="name-row">
+          <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
+          <text class="badge pin-badge" v-if="post.isPinned">置顶</text>
+          <text class="badge feature-badge" v-if="post.isFeatured">精品</text>
+        </view>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
 
@@ -14,7 +18,7 @@
       </view>
 
       <!-- 删除按钮 -->
-      <view class="delete-btn" v-if="isSelf && showDelete" @click.stop="handleDelete">
+      <view class="delete-btn" v-if="(isSelf || isAdmin) && showDelete" @click.stop="handleDelete">
         <image src="/static/delete.svg" class="delete-icon" />
       </view>
     </view>
@@ -32,6 +36,13 @@
     </view>
 
     <view class="post-footer">
+      <!-- 管理员操作按钮 -->
+      <view class="admin-actions" v-if="isAdmin" @click.stop>
+        <text class="admin-btn" @click="handlePin">{{ post.isPinned ? '取消置顶' : '置顶' }}</text>
+        <text class="admin-btn" @click="handleFeature">{{ post.isFeatured ? '取消精品' : '精品' }}</text>
+      </view>
+      <view style="flex: 1;"></view>
+
       <view class="action" @click.stop="$emit('like')">
         <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
         <text class="count" :class="{ active: post.liked }">{{ post.likeCount || 0 }}</text>
@@ -46,7 +57,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { deletePost, followPet, unfollowPet } from '@/api/index';
+import { deletePost, followPet, unfollowPet, pinPost, featurePost } from '@/api/index';
 
 const props = defineProps({
   post: {
@@ -59,7 +70,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['click', 'like', 'deleted', 'follow-change']);
+const emit = defineEmits(['click', 'like', 'deleted', 'follow-change', 'update-post']);
 
 const isFollowing = ref(props.post.isFollowing || false);
 
@@ -67,10 +78,36 @@ watch(() => props.post.isFollowing, (val) => {
   isFollowing.value = !!val;
 });
 
+const userInfo = uni.getStorageSync('userInfo');
 const isSelf = computed(() => {
-  const userInfo = uni.getStorageSync('userInfo');
   return userInfo && props.post.pet && userInfo.id === props.post.pet.id;
 });
+
+const isAdmin = computed(() => {
+  return userInfo && userInfo.role === 'admin';
+});
+
+const handlePin = async () => {
+  try {
+    const newStatus = props.post.isPinned ? 0 : 1;
+    await pinPost(props.post.id, newStatus);
+    uni.showToast({ title: newStatus ? '置顶成功' : '取消置顶', icon: 'none' });
+    emit('update-post', { ...props.post, isPinned: newStatus });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const handleFeature = async () => {
+  try {
+    const newStatus = props.post.isFeatured ? 0 : 1;
+    await featurePost(props.post.id, newStatus);
+    uni.showToast({ title: newStatus ? '设为精品' : '取消精品', icon: 'none' });
+    emit('update-post', { ...props.post, isFeatured: newStatus });
+  } catch (e) {
+    console.error(e);
+  }
+};
 
 const formatTime = (time) => {
   if (!time) return '';
@@ -176,12 +213,47 @@ const goTopic = (topicId, topicName) => {
       flex: 1;
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      margin-right: 16rpx;
+
+      .name-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4rpx;
+        min-width: 0;
+      }
 
       .name {
+        display: block;
         font-size: 32rpx;
         font-weight: 600;
         color: #333;
-        margin-bottom: 4rpx;
+        margin-right: 12rpx;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 0 1 auto;
+        min-width: 0;
+      }
+
+      .badge {
+        font-size: 20rpx;
+        padding: 2rpx 8rpx;
+        border-radius: 4rpx;
+        margin-right: 8rpx;
+        font-weight: normal;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      .pin-badge {
+        background-color: #ffe58f;
+        color: #d46b08;
+      }
+
+      .feature-badge {
+        background-color: #ffccc7;
+        color: #cf1322;
       }
 
       .time {
@@ -201,6 +273,8 @@ const goTopic = (topicId, topicName) => {
       font-weight: 600;
       box-shadow: 0 4rpx 10rpx rgba(113, 197, 218, 0.2);
       transition: all 0.3s;
+      flex-shrink: 0;
+      white-space: nowrap;
 
       &.followed {
         background: #f5f5f5;
@@ -217,6 +291,7 @@ const goTopic = (topicId, topicName) => {
       padding: 12rpx;
       background-color: #f9f9f9;
       border-radius: 50%;
+      flex-shrink: 0;
 
       .delete-icon {
         width: 32rpx;
@@ -270,9 +345,27 @@ const goTopic = (topicId, topicName) => {
 
   .post-footer {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     padding-top: 24rpx;
     border-top: 1rpx solid #f9f9f9;
+
+    .admin-actions {
+      display: flex;
+      gap: 12rpx;
+      margin-right: 12rpx;
+      flex-shrink: 0;
+
+      .admin-btn {
+        font-size: 24rpx;
+        color: #666;
+        background-color: #eee;
+        padding: 6rpx 16rpx;
+        border-radius: 8rpx;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+    }
 
     .action {
       display: flex;

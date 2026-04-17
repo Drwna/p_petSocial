@@ -44,7 +44,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData['recommend'] ? tabData['recommend'].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
             <view v-if="tabData['recommend'] && tabData['recommend'].loading" class="loading">加载中...</view>
             <view v-if="tabData['recommend'] && !tabData['recommend'].loading && tabData['recommend'].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -56,7 +56,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData[0] ? tabData[0].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
             <view v-if="tabData[0] && tabData[0].loading" class="loading">加载中...</view>
             <view v-if="tabData[0] && !tabData[0].loading && tabData[0].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -68,7 +68,7 @@
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
           <view class="post-list">
             <post-card v-for="post in (tabData[cat.id] ? tabData[cat.id].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
-              @like="handleLike(post)" @follow-change="onFollowChange" />
+              @like="handleLike(post)" @follow-change="onFollowChange" @update-post="onUpdatePost" />
             <view v-if="tabData[cat.id] && tabData[cat.id].loading" class="loading">加载中...</view>
             <view v-if="tabData[cat.id] && !tabData[cat.id].loading && tabData[cat.id].posts.length === 0" class="empty">暂无内容</view>
           </view>
@@ -337,6 +337,16 @@ const onFollowChange = ({ petId, isFollowing }) => {
         post.isFollowing = isFollowing;
       }
     });
+  });
+};
+
+const onUpdatePost = (updatedPost) => {
+  Object.keys(tabData).forEach(key => {
+    const idx = tabData[key].posts.findIndex(p => p.id === updatedPost.id);
+    if (idx !== -1) {
+      // 保持引用替换或者合并
+      Object.assign(tabData[key].posts[idx], updatedPost);
+    }
   });
 };
 </script>
