@@ -27,6 +27,10 @@
           <text class="num">{{ postCount }}</text>
           <text class="label">帖子</text>
         </view>
+        <view class="stat-item">
+          <text class="num">{{ points }}</text>
+          <text class="label">积分</text>
+        </view>
       </view>
 
       <view class="action-row">
@@ -65,6 +69,7 @@ import PostCard from '@/components/PostCard.vue';
 
 const pet = ref({});
 const postCount = ref(0);
+const points = ref(0);
 const posts = ref([]);
 const bookmarks = ref([]);
 const currentTab = ref('posts');
@@ -136,6 +141,7 @@ const loadData = async () => {
     const profileRes = await getPetProfile(userInfo.id);
     pet.value = profileRes.data.pet;
     postCount.value = profileRes.data.postCount;
+    points.value = profileRes.data.points || 0;
 
     // 合并从后端获取的 pet 信息，但保留本地存储中的 role 字段
     const updatedUserInfo = { ...pet.value, role: userInfo.role };

@@ -1,5 +1,5 @@
 const express = require('express');
-const { Pet, Post, Category, PostLike, Comment, BlockPet } = require('../models');
+const { Pet, Post, Category, PostLike, Comment, BlockPet, Account } = require('../models');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -16,6 +16,9 @@ router.get('/profile', auth, async (req, res) => {
       });
     }
 
+    // 获取账号信息（包含积分）
+    const account = await Account.findOne({ where: { petId: pet.id } });
+
     // 获取帖子数量
     const postCount = await Post.count({ where: { petId: pet.id, isDeleted: 0 } });
 
@@ -23,7 +26,8 @@ router.get('/profile', auth, async (req, res) => {
       code: 0,
       data: {
         pet,
-        postCount
+        postCount,
+        points: account ? account.points : 0
       }
     });
   } catch (error) {

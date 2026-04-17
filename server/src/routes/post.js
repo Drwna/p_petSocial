@@ -1,7 +1,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const sequelize = require('../config/db');
-const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark, BlockPet, PostDislike } = require('../models');
+const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark, BlockPet, PostDislike, Account, PointLog } = require('../models');
 const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -38,9 +38,49 @@ router.post('/create', auth, async (req, res) => {
       await Topic.increment('postCount', { by: 1, where: { id: topicIds } });
     }
 
+    // 积分奖励逻辑
+    let pointMsg = '';
+    const wordCount = content ? content.trim().length : 0;
+    const imageCount = images ? images.length : 0;
+
+    // 门槛：至少 10 个字 + 至少 1 张图片
+    if (wordCount >= 10 && imageCount >= 1) {
+      const account = await Account.findOne({ where: { petId: req.petId } });
+      if (account) {
+        // 检查每日上限：今天已通过发帖获得的积分记录
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const todayLogs = await PointLog.count({
+          where: {
+            accountId: account.id,
+            type: 'post_created',
+            createTime: {
+              [Op.gte]: today,
+              [Op.lt]: tomorrow
+            }
+          }
+        });
+
+        if (todayLogs < 2) {
+          const rewardPoints = 10;
+          await account.increment('points', { by: rewardPoints });
+          await PointLog.create({
+            accountId: account.id,
+            type: 'post_created',
+            amount: rewardPoints,
+            refId: post.id
+          });
+          pointMsg = `，获得 ${rewardPoints} 积分`;
+        }
+      }
+    }
+
     res.json({
       code: 0,
-      msg: '发布成功'
+      msg: `发布成功${pointMsg}`
     });
   } catch (error) {
     res.status(500).json({
@@ -117,7 +157,36 @@ router.post('/:id/feature', auth, async (req, res) => {
     if (!post) {
       return res.status(404).json({ code: 404, msg: '帖子不存在' });
     }
+
+    const wasFeatured = post.isFeatured;
     await post.update({ isFeatured: isFeatured ? 1 : 0 });
+
+    // 设为精品奖励
+    if (isFeatured && !wasFeatured) {
+      const account = await Account.findOne({ where: { petId: post.petId } });
+      if (account) {
+        // 检查是否已经领过该贴的精选奖励（防止管理员反复操作）
+        const hasLog = await PointLog.findOne({
+          where: {
+            accountId: account.id,
+            type: 'post_featured',
+            refId: post.id
+          }
+        });
+
+        if (!hasLog) {
+          const rewardPoints = 50;
+          await account.increment('points', { by: rewardPoints });
+          await PointLog.create({
+            accountId: account.id,
+            type: 'post_featured',
+            amount: rewardPoints,
+            refId: post.id
+          });
+        }
+      }
+    }
+
     res.json({ code: 0, msg: isFeatured ? '已设为精品' : '已取消精品' });
   } catch (error) {
     res.status(500).json({ code: 500, msg: '操作失败', error: error.message });

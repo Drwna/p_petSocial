@@ -157,14 +157,14 @@ const handleSubmit = async () => {
       uploadedUrls = await uploadImages(images.value);
     }
 
-    await createPost({
+    const res = await createPost({
       content: content.value,
       images: uploadedUrls,
       categoryId: selectedCategory.value.id,
       topicIds: selectedTopicIds.value
     });
     
-    uni.showToast({ title: '发布成功' });
+    uni.showToast({ title: res.msg || '发布成功' });
     setTimeout(() => {
       // 重置并跳转
       content.value = '';

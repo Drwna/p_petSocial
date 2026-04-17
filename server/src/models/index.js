@@ -11,11 +11,16 @@ const PostTopic = require('./PostTopic');
 const Bookmark = require('./Bookmark');
 const BlockPet = require('./BlockPet');
 const PostDislike = require('./PostDislike');
+const PointLog = require('./PointLog');
 
 // 建立模型关系
 // Account 与 Pet 是一对一关系
 Account.belongsTo(Pet, { foreignKey: 'petId', targetKey: 'id', as: 'pet' });
 Pet.hasOne(Account, { foreignKey: 'petId', sourceKey: 'id', as: 'account' });
+
+// Account 与 PointLog 是一对多关系
+Account.hasMany(PointLog, { foreignKey: 'accountId', as: 'pointLogs' });
+PointLog.belongsTo(Account, { foreignKey: 'accountId', as: 'account' });
 
 // Post 与 Pet 是多对一关系
 Post.belongsTo(Pet, { foreignKey: 'petId', targetKey: 'id', as: 'pet' });
@@ -82,5 +87,6 @@ module.exports = {
   PostTopic,
   Bookmark,
   BlockPet,
-  PostDislike
+  PostDislike,
+  PointLog
 };

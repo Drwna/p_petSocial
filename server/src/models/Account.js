@@ -27,6 +27,10 @@ const Account = sequelize.define('Account', {
     type: DataTypes.STRING,
     defaultValue: 'user' // 'user' or 'admin'
   },
+  points: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   createTime: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
