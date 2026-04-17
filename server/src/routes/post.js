@@ -1,5 +1,6 @@
 const express = require('express');
 const { Op } = require('sequelize');
+const sequelize = require('../config/db');
 const { Post, Pet, Category, PostLike, Comment, Follow, Topic, PostTopic, Bookmark } = require('../models');
 const auth = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
@@ -141,10 +142,19 @@ router.get('/list', async (req, res) => {
       };
     }
 
+    let orderOption = [['createTime', 'DESC']];
+    if (req.query.isRecommend === '1') {
+      // 推荐流：综合点赞数和评论数排序，并结合时间
+      orderOption = [
+        [sequelize.literal('((SELECT COUNT(*) FROM post_like WHERE post_like.postId = `Post`.`id`) * 2 + (SELECT COUNT(*) FROM comment WHERE comment.postId = `Post`.`id` AND comment.isDeleted = 0) * 3)'), 'DESC'],
+        ['createTime', 'DESC']
+      ];
+    }
+
     const { rows: posts, count } = await Post.findAndCountAll({
       where,
       include: includeOptions,
-      order: [['createTime', 'DESC']],
+      order: orderOption,
       limit: parseInt(pageSize),
       offset: offset,
       distinct: true // 当使用 include 且有一对多关系时，确保 count 准确

@@ -25,6 +25,9 @@
     <!-- 分类 Tab -->
     <scroll-view scroll-x enhanced :show-scrollbar="false" class="category-tabs" :scroll-into-view="'tab-' + currentCategory">
       <view class="category-tabs_placeholder"></view>
+      <view class="tab-item" :class="{ active: currentCategory === 'recommend' }" @click="changeCategory('recommend')" id="tab-recommend">
+        推荐
+      </view>
       <view class="tab-item" :class="{ active: currentCategory === 0 }" @click="changeCategory(0)" id="tab-0">
         全部
       </view>
@@ -36,6 +39,18 @@
 
     <!-- 左右滑动切换内容 -->
     <swiper class="content-swiper" :current="currentSwiperIndex" @change="onSwiperChange">
+      <!-- 推荐 Tab 的内容 -->
+      <swiper-item>
+        <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
+          <view class="post-list">
+            <post-card v-for="post in (tabData['recommend'] ? tabData['recommend'].posts : [])" :key="post.id" :post="post" @click="goDetail(post.id)"
+              @like="handleLike(post)" @follow-change="onFollowChange" />
+            <view v-if="tabData['recommend'] && tabData['recommend'].loading" class="loading">加载中...</view>
+            <view v-if="tabData['recommend'] && !tabData['recommend'].loading && tabData['recommend'].posts.length === 0" class="empty">暂无内容</view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+
       <!-- 全部 Tab 的内容 -->
       <swiper-item>
         <scroll-view scroll-y class="post-scroll" @scrolltolower="onScrollToLower">
@@ -70,9 +85,10 @@ import { getCategories, getPostList, likePost } from '@/api/index';
 import PostCard from '@/components/PostCard.vue';
 
 const categories = ref([]);
-const currentCategory = ref(0);
+const currentCategory = ref('recommend');
 // 独立每个 Tab 的数据流
 const tabData = reactive({
+  'recommend': { posts: [], page: 1, hasMore: true, loading: false, loaded: false },
   0: { posts: [], page: 1, hasMore: true, loading: false, loaded: false }
 });
 
@@ -103,11 +119,12 @@ const clearTopicFilter = () => {
 };
 
 // 计算当前 swiper 的 index
-// 0 对应 "全部"，1 对应 categories[0]，以此类推
+// 0 对应 "推荐"，1 对应 "全部"，2 对应 categories[0]，以此类推
 const currentSwiperIndex = computed(() => {
-  if (currentCategory.value === 0) return 0;
+  if (currentCategory.value === 'recommend') return 0;
+  if (currentCategory.value === 0) return 1;
   const index = categories.value.findIndex(c => c.id === currentCategory.value);
-  return index + 1;
+  return index + 2;
 });
 
 onMounted(async () => {
@@ -205,9 +222,11 @@ const onSwiperChange = (e) => {
   const index = e.detail.current;
   let targetCatId = 0;
   if (index === 0) {
+    targetCatId = 'recommend';
+  } else if (index === 1) {
     targetCatId = 0;
   } else {
-    targetCatId = categories.value[index - 1].id;
+    targetCatId = categories.value[index - 2].id;
   }
 
   if (currentCategory.value !== targetCatId) {
@@ -234,7 +253,8 @@ const loadPosts = async (refresh = false) => {
 
   try {
     const res = await getPostList({
-      categoryId: catId || undefined,
+      categoryId: (catId === 'recommend' || catId === 0) ? undefined : catId,
+      isRecommend: catId === 'recommend' ? 1 : undefined,
       topicId: filterTopic.value?.id || undefined,
       keyword: searchQuery.value || '',
       page: tab.page,
