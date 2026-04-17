@@ -185,10 +185,10 @@ router.get('/list', async (req, res) => {
       ['createTime', 'DESC']
     ];
     if (req.query.isRecommend === '1') {
-      // 推荐流：综合点赞数和评论数排序，并结合时间，但置顶仍然优先
+      // 推荐流：综合点赞数、评论数和精选状态排序，并结合时间，但置顶仍然优先
       orderOption = [
         ['isPinned', 'DESC'],
-        [sequelize.literal('((SELECT COUNT(*) FROM post_like WHERE post_like.postId = `Post`.`id`) * 2 + (SELECT COUNT(*) FROM comment WHERE comment.postId = `Post`.`id` AND comment.isDeleted = 0) * 3)'), 'DESC'],
+        [sequelize.literal('((SELECT COUNT(*) FROM post_like WHERE post_like.postId = `Post`.`id`) * 2 + (SELECT COUNT(*) FROM comment WHERE comment.postId = `Post`.`id` AND comment.isDeleted = 0) * 3 + `Post`.`isFeatured` * 10)'), 'DESC'],
         ['createTime', 'DESC']
       ];
     }
