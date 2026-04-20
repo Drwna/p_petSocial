@@ -96,9 +96,13 @@ router.post('/delete', auth, async (req, res) => {
   try {
     const { postId } = req.body;
 
-    const post = await Post.findOne({
-      where: { id: postId, petId: req.petId }
-    });
+    const where = { id: postId };
+    // 如果不是管理员，只能删除自己的帖子
+    if (req.role !== 'admin') {
+      where.petId = req.petId;
+    }
+
+    const post = await Post.findOne({ where });
 
     if (!post) {
       return res.status(404).json({

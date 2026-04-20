@@ -84,6 +84,49 @@ router.get('/list', async (req, res) => {
   }
 });
 
+// 获取所有评论（管理员）
+router.get('/list-all', auth, async (req, res) => {
+  try {
+    if (req.role !== 'admin') {
+      return res.status(403).json({ code: 403, msg: '无权操作' });
+    }
+    const { page = 1, size = 10 } = req.query;
+    const offset = (page - 1) * size;
+
+    const { rows: comments, count } = await Comment.findAndCountAll({
+      where: { isDeleted: 0 },
+      include: [
+        {
+          model: Pet,
+          as: 'pet',
+          attributes: ['id', 'petName', 'avatar']
+        },
+        {
+          model: Post,
+          as: 'post',
+          attributes: ['id', 'content']
+        }
+      ],
+      order: [['createTime', 'DESC']],
+      limit: parseInt(size),
+      offset: parseInt(offset)
+    });
+
+    res.json({
+      code: 0,
+      msg: 'success',
+      data: {
+        list: comments,
+        total: count,
+        page: parseInt(page),
+        size: parseInt(size)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ code: 500, msg: '获取评论列表失败', error: error.message });
+  }
+});
+
 // 删除评论
 router.post('/delete', auth, async (req, res) => {
   try {
@@ -109,11 +152,12 @@ router.post('/delete', auth, async (req, res) => {
       });
     }
 
-    // 检查权限：要么是评论作者，要么是帖子作者
+    // 检查权限：要么是管理员，要么是评论作者，要么是帖子作者
+    const isAdmin = req.role === 'admin';
     const isCommentAuthor = comment.petId === req.petId;
     const isPostAuthor = comment.post.petId === req.petId;
     
-    if (!isCommentAuthor && !isPostAuthor) {
+    if (!isAdmin && !isCommentAuthor && !isPostAuthor) {
       return res.status(403).json({
         code: 403,
         msg: '无权删除该评论'

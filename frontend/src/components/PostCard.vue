@@ -18,7 +18,7 @@
       </view>
 
       <!-- 删除按钮 -->
-      <view class="delete-btn" v-if="(isSelf || isAdmin) && showDelete" @click.stop="handleDelete">
+      <view class="delete-btn" v-if="isSelf && showDelete" @click.stop="handleDelete">
         <image src="/static/delete.svg" class="delete-icon" />
       </view>
 
@@ -30,7 +30,8 @@
 
     <view class="post-content">
       <view class="topic-list" v-if="post.topics && post.topics.length > 0">
-        <text class="topic-tag" v-for="topic in post.topics" :key="topic.id" @click.stop="goTopic(topic.id, topic.name)">#{{ topic.name }}#</text>
+        <text class="topic-tag" v-for="topic in post.topics" :key="topic.id"
+          @click.stop="goTopic(topic.id, topic.name)">#{{ topic.name }}#</text>
       </view>
       <text class="text">{{ post.content }}</text>
     </view>
@@ -41,20 +42,17 @@
     </view>
 
     <view class="post-footer">
-      <!-- 管理员操作按钮 -->
-      <view class="admin-actions" v-if="isAdmin" @click.stop>
-        <text class="admin-btn" @click="handlePin">{{ post.isPinned ? '取消置顶' : '置顶' }}</text>
-        <text class="admin-btn" @click="handleFeature">{{ post.isFeatured ? '取消精品' : '精品' }}</text>
-      </view>
-      <view style="flex: 1;"></view>
+      <view class="footer-left"></view>
 
-      <view class="action" @click.stop="$emit('like')">
-        <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
-        <text class="count" :class="{ active: post.liked }">{{ post.likeCount || 0 }}</text>
-      </view>
-      <view class="action">
-        <text class="icon">💬</text>
-        <text class="count">{{ post.commentCount || 0 }}</text>
+      <view class="footer-right">
+        <view class="action" @click.stop="$emit('like')">
+          <text class="icon">{{ post.liked ? '❤️' : '🤍' }}</text>
+          <text class="count" :class="{ active: post.liked }">{{ post.likeCount || 0 }}</text>
+        </view>
+        <view class="action">
+          <text class="icon">💬</text>
+          <text class="count">{{ post.commentCount || 0 }}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -62,7 +60,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue';
-import { deletePost, followPet, unfollowPet, pinPost, featurePost, dislikePost, blockPet } from '@/api/index';
+import { deletePost, followPet, unfollowPet, dislikePost, blockPet } from '@/api/index';
 
 const props = defineProps({
   post: {
@@ -87,32 +85,6 @@ const userInfo = uni.getStorageSync('userInfo');
 const isSelf = computed(() => {
   return userInfo && props.post.pet && userInfo.id === props.post.pet.id;
 });
-
-const isAdmin = computed(() => {
-  return userInfo && userInfo.role === 'admin';
-});
-
-const handlePin = async () => {
-  try {
-    const newStatus = props.post.isPinned ? 0 : 1;
-    await pinPost(props.post.id, newStatus);
-    uni.showToast({ title: newStatus ? '置顶成功' : '取消置顶', icon: 'none' });
-    emit('update-post', { ...props.post, isPinned: newStatus });
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-const handleFeature = async () => {
-  try {
-    const newStatus = props.post.isFeatured ? 0 : 1;
-    await featurePost(props.post.id, newStatus);
-    uni.showToast({ title: newStatus ? '设为精品' : '取消精品', icon: 'none' });
-    emit('update-post', { ...props.post, isFeatured: newStatus });
-  } catch (e) {
-    console.error(e);
-  }
-};
 
 const handleMore = () => {
   const options = ['不感兴趣', '屏蔽作者'];
@@ -222,7 +194,7 @@ const goTopic = (topicId, topicName) => {
   uni.setStorageSync('filterTopic', { id: topicId, name: topicName });
   // 先触发事件，因为如果当前已经在首页，switchTab 可能会走 fail 回调而不是 success
   uni.$emit('refreshIndex');
-  uni.switchTab({ 
+  uni.switchTab({
     url: '/pages/index/index'
   });
 };
@@ -344,7 +316,7 @@ const goTopic = (topicId, topicName) => {
     .more-btn {
       padding: 12rpx 20rpx;
       flex-shrink: 0;
-      
+
       .more-icon {
         font-size: 36rpx;
         color: #999;
@@ -360,12 +332,12 @@ const goTopic = (topicId, topicName) => {
 
   .post-content {
     margin-bottom: 24rpx;
-    
+
     .topic-list {
       display: inline-block;
       margin-bottom: 8rpx;
     }
-    
+
     .topic-tag {
       color: #71C5DA;
       font-size: 30rpx;
@@ -382,6 +354,12 @@ const goTopic = (topicId, topicName) => {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      // 设置最大高度，超出部分省略号显示
+      max-height: 120rpx;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
   }
 
@@ -403,44 +381,37 @@ const goTopic = (topicId, topicName) => {
   .post-footer {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     padding-top: 24rpx;
     border-top: 1rpx solid #f9f9f9;
 
-    .admin-actions {
-      display: flex;
-      gap: 12rpx;
-      margin-right: 12rpx;
-      flex-shrink: 0;
+    .footer-left {
+      flex: 1;
+    }
 
-      .admin-btn {
-        font-size: 24rpx;
-        color: #666;
-        background-color: #eee;
-        padding: 6rpx 16rpx;
-        border-radius: 8rpx;
-        white-space: nowrap;
-        flex-shrink: 0;
-      }
+    .footer-right {
+      display: flex;
+      align-items: center;
     }
 
     .action {
       display: flex;
       align-items: center;
-      margin-left: 48rpx;
+      margin-left: 32rpx;
       background-color: #f9f9f9;
       padding: 8rpx 24rpx;
       border-radius: 30rpx;
 
       .icon {
         font-size: 32rpx;
-        margin-right: 12rpx;
+        margin-right: 8rpx;
       }
 
       .count {
         font-size: 26rpx;
         color: #666;
         font-weight: 500;
+        min-width: 20rpx;
 
         &.active {
           color: #ff4d4f;
