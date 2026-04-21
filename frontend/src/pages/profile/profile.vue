@@ -27,7 +27,7 @@
           <text class="num">{{ postCount }}</text>
           <text class="label">帖子</text>
         </view>
-        <view class="stat-item">
+        <view class="stat-item" @click="goPointRecords">
           <text class="num">{{ points }}</text>
           <text class="label">积分</text>
         </view>
@@ -271,7 +271,11 @@ const goEdit = () => {
 };
 
 const goFollowList = (type) => {
-  uni.navigateTo({ url: `/pages/follow/list?type=${type}` });
+  uni.navigateTo({ url: `/pages/follow/list?type=${type}&petId=${pet.value.id}` });
+};
+
+const goPointRecords = () => {
+  uni.navigateTo({ url: '/pages/points/records' });
 };
 
 const goBlockList = () => {

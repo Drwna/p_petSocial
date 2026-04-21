@@ -68,6 +68,12 @@
 			"style": {
 				"navigationBarTitleText": "屏蔽管理"
 			}
+		},
+		{
+			"path": "pages/points/records",
+			"style": {
+				"navigationBarTitleText": "积分记录"
+			}
 		}
 	],
 	"globalStyle": {

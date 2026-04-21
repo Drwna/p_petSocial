@@ -238,6 +238,14 @@ export const unfollowPet = (petId) => {
   });
 };
 
+// 积分相关
+export const getPointLogs = () => {
+  return request({
+    url: '/api/point/logs',
+    method: 'GET'
+  });
+};
+
 export const getFollowingList = (data) => {
   return request({
     url: '/api/follow/following',
