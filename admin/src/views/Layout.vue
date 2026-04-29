@@ -22,6 +22,14 @@
           <el-icon><Tickets /></el-icon>
           <span>话题配置</span>
         </el-menu-item>
+        <el-menu-item index="/merchants">
+          <el-icon><Shop /></el-icon>
+          <span>商家管理</span>
+        </el-menu-item>
+        <el-menu-item index="/activities">
+          <el-icon><Calendar /></el-icon>
+          <span>活动审核</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>

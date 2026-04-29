@@ -6,6 +6,7 @@
         <view class="info-right">
           <view class="name-row">
             <text class="name">{{ pet.petName }}</text>
+            <text class="merchant-badge" v-if="userRole === 'merchant'">商家</text>
             <text class="gender-icon" v-if="pet.gender === '0'">♂</text>
             <text class="gender-icon female" v-else-if="pet.gender === '1'">♀</text>
             <text class="age" v-if="pet.birthday">{{ calculateAge(pet.birthday) }}</text>
@@ -37,6 +38,21 @@
         <button class="btn edit-btn" @click="goEdit">编辑资料</button>
         <button class="btn switch-btn" @click="showSwitchAccount">切换账号</button>
         <button class="btn block-btn" @click="goBlockList">屏蔽管理</button>
+      </view>
+
+      <view class="merchant-row">
+        <view class="merchant-entry" @click="goMerchant">
+          <text class="merchant-icon">🏪</text>
+          <text class="merchant-text">{{ userRole === 'merchant' ? '商家管理' : '申请成为商家' }}</text>
+        </view>
+        <view class="merchant-entry" @click="goRedemptions">
+          <text class="merchant-icon">🎁</text>
+          <text class="merchant-text">我的兑换</text>
+        </view>
+        <view class="merchant-entry" @click="goJoinedActivities">
+          <text class="merchant-icon">🗓</text>
+          <text class="merchant-text">我的活动</text>
+        </view>
       </view>
     </view>
 
@@ -73,6 +89,7 @@ const points = ref(0);
 const posts = ref([]);
 const bookmarks = ref([]);
 const currentTab = ref('posts');
+const userRole = ref('');
 
 const page = ref(1);
 const hasMore = ref(true);
@@ -136,6 +153,7 @@ const loadData = async () => {
     uni.redirectTo({ url: '/pages/login/login' });
     return;
   }
+  userRole.value = userInfo.role || 'user';
 
   try {
     const profileRes = await getPetProfile(userInfo.id);
@@ -282,6 +300,18 @@ const goBlockList = () => {
   uni.navigateTo({ url: '/pages/user/blocklist' });
 };
 
+const goMerchant = () => {
+  uni.navigateTo({ url: '/pages/merchant/apply' });
+};
+
+const goRedemptions = () => {
+  uni.navigateTo({ url: '/pages/shop/redemptions' });
+};
+
+const goJoinedActivities = () => {
+  uni.navigateTo({ url: '/pages/activity/list' });
+};
+
 const goDetail = (id) => {
   uni.navigateTo({ url: `/pages/post/detail?id=${id}` });
 };
@@ -422,6 +452,17 @@ const showSwitchAccount = () => {
           font-weight: 700;
           color: #333;
           margin-right: 16rpx;
+        }
+
+        .merchant-badge {
+          font-size: 20rpx;
+          padding: 2rpx 10rpx;
+          border-radius: 4rpx;
+          background-color: #d6e4ff;
+          color: #1d39c4;
+          margin-right: 10rpx;
+          font-weight: normal;
+          flex-shrink: 0;
         }
 
         .gender-icon {
@@ -568,5 +609,37 @@ const showSwitchAccount = () => {
       margin-top: 20rpx;
     }
   }
+}
+
+.merchant-row {
+  display: flex;
+  gap: 0;
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.merchant-entry {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 10rpx;
+  border-right: 1rpx solid #f0f0f0;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.merchant-icon {
+  font-size: 40rpx;
+  margin-bottom: 8rpx;
+}
+
+.merchant-text {
+  font-size: 22rpx;
+  color: #555;
 }
 </style>

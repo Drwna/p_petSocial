@@ -388,7 +388,17 @@ router.get('/list', async (req, res) => {
         isBookmarked
       };
     }));
-    
+
+    // 批量查询商家 petId，附加 isMerchant 标记
+    const petIds = [...new Set(postsWithCounts.map(p => p.petId).filter(Boolean))];
+    const merchantAccounts = petIds.length
+      ? await Account.findAll({ where: { petId: petIds, role: 'merchant' }, attributes: ['petId'] })
+      : [];
+    const merchantPetIds = new Set(merchantAccounts.map(a => a.petId));
+    postsWithCounts.forEach(p => {
+      if (p.pet) p.pet.isMerchant = merchantPetIds.has(p.petId);
+    });
+
     res.json({
       code: 0,
       msg: 'success',
@@ -480,7 +490,11 @@ router.get('/:id', async (req, res) => {
         likeCount,
         commentCount,
         liked,
-        isBookmarked
+        isBookmarked,
+        pet: post.pet ? {
+          ...post.pet.toJSON(),
+          isMerchant: !!(await Account.findOne({ where: { petId: post.petId, role: 'merchant' } }))
+        } : null
       }
     });
   } catch (error) {

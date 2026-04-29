@@ -35,6 +35,18 @@ const routes = [
         name: 'Topics',
         component: () => import('@/views/TopicList.vue'),
         meta: { title: '话题配置' }
+      },
+      {
+        path: 'merchants',
+        name: 'Merchants',
+        component: () => import('@/views/MerchantList.vue'),
+        meta: { title: '商家管理' }
+      },
+      {
+        path: 'activities',
+        name: 'Activities',
+        component: () => import('@/views/ActivityList.vue'),
+        meta: { title: '活动审核' }
       }
     ]
   }

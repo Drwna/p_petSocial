@@ -8,6 +8,7 @@
           <text class="name">{{ post.pet?.petName || '已注销用户' }}</text>
           <text class="badge pin-badge" v-if="post.isPinned">置顶</text>
           <text class="badge feature-badge" v-if="post.isFeatured">精品</text>
+          <text class="badge merchant-badge" v-if="post.pet?.isMerchant">商家</text>
         </view>
         <text class="time">{{ formatTime(post.createTime) }}</text>
       </view>
@@ -267,6 +268,11 @@ const goTopic = (topicId, topicName) => {
       .feature-badge {
         background-color: #ffccc7;
         color: #cf1322;
+      }
+
+      .merchant-badge {
+        background-color: #d6e4ff;
+        color: #1d39c4;
       }
 
       .time {

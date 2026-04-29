@@ -63,7 +63,8 @@ const getTypeName = (type) => {
     'post_created': '发帖奖励',
     'post_featured': '精品贴奖励',
     'admin_adjust': '系统调整',
-    'sign_in': '签到奖励'
+    'sign_in': '签到奖励',
+    'gift_redeemed': '礼品兑换'
   };
   return types[type] || '积分变动';
 };

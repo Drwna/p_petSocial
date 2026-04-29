@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend/src/pages -type f -name *.vue)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\(''''easycom'''',{}\\), ensure_ascii=False, indent=2\\)\\)\")",
+      "Bash(grep -rn \"uni-popup\\\\|uni_modules\" /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend/src/ --include=*.vue --include=*.json)",
+      "Bash(node -e \":*)",
+      "Bash(node src/app.js)",
+      "Bash(npm start:*)",
+      "Bash(mysql -u root -p123456 -e \"SHOW INDEX FROM pet_social.topic;\")",
+      "Bash(mysql -uroot -p123456 pet_social -e \"SHOW INDEX FROM topic\\\\G\")",
+      "Bash(node:*)"
+    ]
+  }
+}

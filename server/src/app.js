@@ -23,6 +23,9 @@ const uploadRoutes = require('./routes/upload');
 const topicRoutes = require('./routes/topic');
 const bookmarkRoutes = require('./routes/bookmark');
 const pointRoutes = require('./routes/point');
+const merchantRoutes = require('./routes/merchant');
+const giftRoutes = require('./routes/gift');
+const activityRoutes = require('./routes/activity');
 
 app.use('/api/account', accountRoutes);
 app.use('/api/pet', petRoutes);
@@ -34,6 +37,9 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/topic', topicRoutes);
 app.use('/api/bookmark', bookmarkRoutes);
 app.use('/api/point', pointRoutes);
+app.use('/api/merchant', merchantRoutes);
+app.use('/api/gift', giftRoutes);
+app.use('/api/activity', activityRoutes);
 
 // 初始化数据库
 const initDatabase = async () => {

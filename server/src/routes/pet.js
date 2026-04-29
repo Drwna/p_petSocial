@@ -87,6 +87,8 @@ router.get('/posts', auth, async (req, res) => {
     });
 
     // 获取每个帖子的点赞数和评论数
+    const merchantAccount = await Account.findOne({ where: { petId, role: 'merchant' }, attributes: ['petId'] });
+    const isMerchant = !!merchantAccount;
     const postsWithCounts = await Promise.all(posts.map(async (post) => {
       const likeCount = await PostLike.count({ where: { postId: post.id } });
       const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
@@ -94,7 +96,8 @@ router.get('/posts', auth, async (req, res) => {
       return {
         ...post.toJSON(),
         likeCount,
-        commentCount
+        commentCount,
+        pet: post.pet ? { ...post.pet.toJSON(), isMerchant } : null
       };
     }));
 
@@ -169,11 +172,12 @@ router.get('/profile/:petId', async (req, res) => {
 
     // 获取帖子数量
     const postCount = await Post.count({ where: { petId: pet.id, isDeleted: 0 } });
+    const merchantAccount = await Account.findOne({ where: { petId: pet.id, role: 'merchant' }, attributes: ['petId'] });
 
     res.json({
       code: 0,
       data: {
-        pet,
+        pet: { ...pet.toJSON(), isMerchant: !!merchantAccount },
         postCount
       }
     });
@@ -223,6 +227,8 @@ router.get('/:petId/posts', async (req, res) => {
     });
 
     // 获取每个帖子的点赞数和评论数
+    const merchantAccount = await Account.findOne({ where: { petId, role: 'merchant' }, attributes: ['petId'] });
+    const isMerchant = !!merchantAccount;
     const postsWithCounts = await Promise.all(posts.map(async (post) => {
       const likeCount = await PostLike.count({ where: { postId: post.id } });
       const commentCount = await Comment.count({ where: { postId: post.id, isDeleted: 0 } });
@@ -230,7 +236,8 @@ router.get('/:petId/posts', async (req, res) => {
       return {
         ...post.toJSON(),
         likeCount,
-        commentCount
+        commentCount,
+        pet: post.pet ? { ...post.pet.toJSON(), isMerchant } : null
       };
     }));
 

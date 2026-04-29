@@ -6,6 +6,7 @@
         <view class="info-right">
           <view class="name-row">
             <text class="name">{{ pet.petName }}</text>
+            <text class="merchant-badge" v-if="pet.isMerchant">商家</text>
             <text class="gender-icon" v-if="pet.gender === '0'">♂</text>
             <text class="gender-icon female" v-else-if="pet.gender === '1'">♀</text>
             <text class="age" v-if="pet.birthday">{{ calculateAge(pet.birthday) }}</text>
@@ -291,6 +292,17 @@ const calculateAge = (birthday) => {
           font-weight: 700;
           color: #333;
           margin-right: 16rpx;
+        }
+
+        .merchant-badge {
+          font-size: 20rpx;
+          padding: 2rpx 10rpx;
+          border-radius: 4rpx;
+          background-color: #d6e4ff;
+          color: #1d39c4;
+          margin-right: 10rpx;
+          font-weight: normal;
+          flex-shrink: 0;
         }
 
         .gender-icon {

@@ -270,6 +270,83 @@ export const getFollowStatus = (petId) => {
   });
 };
 
+// 商家相关
+export const applyMerchant = (data) => {
+  return request({ url: '/api/merchant/apply', method: 'POST', data });
+};
+
+export const getMerchantStatus = () => {
+  return request({ url: '/api/merchant/my', method: 'GET' });
+};
+
+// 积分商城
+export const getGiftList = (data) => {
+  return request({ url: '/api/gift/list', method: 'GET', data });
+};
+
+export const getGiftDetail = (id) => {
+  return request({ url: `/api/gift/${id}`, method: 'GET' });
+};
+
+export const redeemGift = (data) => {
+  return request({ url: '/api/gift/redeem', method: 'POST', data });
+};
+
+export const getMyRedemptions = () => {
+  return request({ url: '/api/gift/my-redemptions', method: 'GET' });
+};
+
+// 商家管理礼品（role=merchant）
+export const createGift = (data) => {
+  return request({ url: '/api/gift/create', method: 'POST', data });
+};
+
+export const updateGift = (data) => {
+  return request({ url: '/api/gift/update', method: 'POST', data });
+};
+
+export const getMyGifts = (data) => {
+  return request({ url: '/api/gift/my', method: 'GET', data });
+};
+
+export const getMerchantOrders = (data) => {
+  return request({ url: '/api/gift/merchant-orders', method: 'GET', data });
+};
+
+export const shipOrder = (redemptionId) => {
+  return request({ url: '/api/gift/ship', method: 'POST', data: { redemptionId } });
+};
+
+// 活动相关
+export const getActivityList = (data) => {
+  return request({ url: '/api/activity/list', method: 'GET', data });
+};
+
+export const getActivityDetail = (id) => {
+  return request({ url: `/api/activity/${id}`, method: 'GET' });
+};
+
+export const joinActivity = (activityId) => {
+  return request({ url: '/api/activity/join', method: 'POST', data: { activityId } });
+};
+
+export const leaveActivity = (activityId) => {
+  return request({ url: '/api/activity/leave', method: 'POST', data: { activityId } });
+};
+
+export const getMyJoinedActivities = () => {
+  return request({ url: '/api/activity/my-joined', method: 'GET' });
+};
+
+// 商家管理活动（role=merchant）
+export const createActivity = (data) => {
+  return request({ url: '/api/activity/create', method: 'POST', data });
+};
+
+export const getMyActivities = (data) => {
+  return request({ url: '/api/activity/my', method: 'GET', data });
+};
+
 // 上传图片 (方案一：独立上传接口)
 export const uploadImages = (filePaths) => {
   return new Promise((resolve, reject) => {

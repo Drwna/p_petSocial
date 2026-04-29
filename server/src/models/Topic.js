@@ -9,8 +9,7 @@ const Topic = sequelize.define('Topic', {
   },
   name: {
     type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
+    allowNull: false
   },
   postCount: {
     type: DataTypes.INTEGER,
@@ -22,7 +21,10 @@ const Topic = sequelize.define('Topic', {
   }
 }, {
   tableName: 'topic',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    { unique: true, fields: ['name'], name: 'name' }
+  ]
 });
 
 module.exports = Topic;

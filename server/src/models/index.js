@@ -12,6 +12,11 @@ const Bookmark = require('./Bookmark');
 const BlockPet = require('./BlockPet');
 const PostDislike = require('./PostDislike');
 const PointLog = require('./PointLog');
+const Merchant = require('./Merchant');
+const Gift = require('./Gift');
+const GiftRedemption = require('./GiftRedemption');
+const Activity = require('./Activity');
+const ActivityParticipant = require('./ActivityParticipant');
 
 // 建立模型关系
 // Account 与 Pet 是一对一关系
@@ -74,6 +79,30 @@ Pet.hasMany(PostDislike, { foreignKey: 'petId', sourceKey: 'id', as: 'dislikes' 
 PostDislike.belongsTo(Post, { foreignKey: 'postId', targetKey: 'id', as: 'post' });
 Post.hasMany(PostDislike, { foreignKey: 'postId', sourceKey: 'id', as: 'dislikes' });
 
+// Merchant 与 Account 是一对一关系
+Merchant.belongsTo(Account, { foreignKey: 'accountId', as: 'account' });
+Account.hasOne(Merchant, { foreignKey: 'accountId', as: 'merchant' });
+
+// Gift 与 Merchant 是多对一关系
+Gift.belongsTo(Merchant, { foreignKey: 'merchantId', as: 'merchant' });
+Merchant.hasMany(Gift, { foreignKey: 'merchantId', as: 'gifts' });
+
+// GiftRedemption 与 Gift 和 Account 的关系
+GiftRedemption.belongsTo(Gift, { foreignKey: 'giftId', as: 'gift' });
+Gift.hasMany(GiftRedemption, { foreignKey: 'giftId', as: 'redemptions' });
+GiftRedemption.belongsTo(Account, { foreignKey: 'accountId', as: 'account' });
+Account.hasMany(GiftRedemption, { foreignKey: 'accountId', as: 'redemptions' });
+
+// Activity 与 Merchant 是多对一关系
+Activity.belongsTo(Merchant, { foreignKey: 'merchantId', as: 'merchant' });
+Merchant.hasMany(Activity, { foreignKey: 'merchantId', as: 'activities' });
+
+// ActivityParticipant 与 Activity 和 Account 的关系
+ActivityParticipant.belongsTo(Activity, { foreignKey: 'activityId', as: 'activity' });
+Activity.hasMany(ActivityParticipant, { foreignKey: 'activityId', as: 'participants' });
+ActivityParticipant.belongsTo(Account, { foreignKey: 'accountId', as: 'account' });
+Account.hasMany(ActivityParticipant, { foreignKey: 'accountId', as: 'participations' });
+
 module.exports = {
   Account,
   Pet,
@@ -88,5 +117,10 @@ module.exports = {
   Bookmark,
   BlockPet,
   PostDislike,
-  PointLog
+  PointLog,
+  Merchant,
+  Gift,
+  GiftRedemption,
+  Activity,
+  ActivityParticipant
 };

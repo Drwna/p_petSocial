@@ -74,6 +74,80 @@
 			"style": {
 				"navigationBarTitleText": "积分记录"
 			}
+		},
+		{
+			"path": "pages/merchant/apply",
+			"style": {
+				"navigationBarTitleText": "申请成为商家"
+			}
+		},
+		{
+			"path": "pages/merchant/status",
+			"style": {
+				"navigationBarTitleText": "商家申请状态"
+			}
+		},
+		{
+			"path": "pages/merchant/gifts",
+			"style": {
+				"navigationBarTitleText": "我的礼品"
+			}
+		},
+		{
+			"path": "pages/merchant/gift-form",
+			"style": {
+				"navigationBarTitleText": "发布礼品"
+			}
+		},
+		{
+			"path": "pages/merchant/activities",
+			"style": {
+				"navigationBarTitleText": "我的活动"
+			}
+		},
+		{
+			"path": "pages/merchant/activity-form",
+			"style": {
+				"navigationBarTitleText": "发布活动"
+			}
+		},
+		{
+			"path": "pages/merchant/orders",
+			"style": {
+				"navigationBarTitleText": "兑换订单"
+			}
+		},
+		{
+			"path": "pages/shop/list",
+			"style": {
+				"navigationBarTitleText": "积分商城",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/shop/detail",
+			"style": {
+				"navigationBarTitleText": "礼品详情"
+			}
+		},
+		{
+			"path": "pages/shop/redemptions",
+			"style": {
+				"navigationBarTitleText": "我的兑换"
+			}
+		},
+		{
+			"path": "pages/activity/list",
+			"style": {
+				"navigationBarTitleText": "线下活动",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
+			"path": "pages/activity/detail",
+			"style": {
+				"navigationBarTitleText": "活动详情"
+			}
 		}
 	],
 	"globalStyle": {
@@ -105,6 +179,12 @@
 				"text": "发布",
 				"iconPath": "static/tabbar/plus.png",
 				"selectedIconPath": "static/tabbar/plus-active.png"
+			},
+			{
+				"pagePath": "pages/shop/list",
+				"text": "商城",
+				"iconPath": "static/tabbar/shop.png",
+				"selectedIconPath": "static/tabbar/shop-active.png"
 			},
 			{
 				"pagePath": "pages/profile/profile",
