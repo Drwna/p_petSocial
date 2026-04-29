@@ -19,7 +19,7 @@
           <span>分类配置</span>
         </el-menu-item>
         <el-menu-item index="/topics">
-          <el-icon><Hash /></el-icon>
+          <el-icon><Tickets /></el-icon>
           <span>话题配置</span>
         </el-menu-item>
       </el-menu>
