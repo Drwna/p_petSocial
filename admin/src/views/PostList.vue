@@ -1,46 +1,60 @@
 <template>
   <div class="post-list">
-    <el-card>
+    <el-card shadow="never">
       <template #header>
         <div class="card-header">
-          <span>帖子列表</span>
-          <el-input v-model="keyword" placeholder="关键词搜索" style="width: 200px" @input="handleSearch" />
+          <span class="card-title">帖子管理</span>
+          <el-input
+            v-model="keyword"
+            placeholder="搜索帖子内容或作者"
+            style="width: 240px"
+            clearable
+            @input="handleSearch"
+            @clear="handleSearch"
+          >
+            <template #prefix><el-icon><Search /></el-icon></template>
+          </el-input>
         </div>
       </template>
-      <el-table :data="posts" v-loading="loading" style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="作者" width="150">
+      <el-table :data="posts" v-loading="loading" style="width: 100%" stripe>
+        <el-table-column prop="id" label="ID" width="70" align="center" />
+        <el-table-column label="作者" width="130">
           <template #default="{ row }">
-            {{ row.pet?.petName }}
+            <span>{{ row.pet?.petName || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="content" label="内容" show-overflow-tooltip />
-        <el-table-column label="状态" width="180">
+        <el-table-column prop="content" label="内容" show-overflow-tooltip min-width="200" />
+        <el-table-column label="状态" width="160" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.isPinned ? 'warning' : 'info'">{{ row.isPinned ? '置顶' : '常规' }}</el-tag>
-            <el-tag :type="row.isFeatured ? 'danger' : 'info'" style="margin-left: 5px">{{ row.isFeatured ? '精品' : '常规' }}</el-tag>
+            <el-tag v-if="row.isPinned" type="warning" size="small" effect="light">置顶</el-tag>
+            <el-tag v-if="row.isFeatured" type="danger" size="small" effect="light" style="margin-left: 4px">精品</el-tag>
+            <span v-if="!row.isPinned && !row.isFeatured" style="color:#c0c4cc;font-size:12px">普通</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250">
+        <el-table-column label="发布时间" width="170">
+          <template #default="{ row }">{{ formatTime(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="240" align="center">
           <template #default="{ row }">
-            <el-button size="small" :type="row.isPinned ? 'info' : 'warning'" @click="handlePin(row)">
+            <el-button size="small" :type="row.isPinned ? 'info' : 'warning'" plain @click="handlePin(row)">
               {{ row.isPinned ? '取消置顶' : '置顶' }}
             </el-button>
-            <el-button size="small" :type="row.isFeatured ? 'info' : 'danger'" @click="handleFeature(row)">
+            <el-button size="small" :type="row.isFeatured ? 'info' : 'success'" plain @click="handleFeature(row)">
               {{ row.isFeatured ? '取消精品' : '精品' }}
             </el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
-      <el-pagination
-        style="margin-top: 20px"
-        background
-        layout="prev, pager, next"
-        :total="total"
-        v-model:current-page="page"
-        @current-change="loadPosts"
-      />
+      <div class="pagination-wrap">
+        <el-pagination
+          background
+          layout="total, prev, pager, next"
+          :total="total"
+          v-model:current-page="page"
+          @current-change="loadPosts"
+        />
+      </div>
     </el-card>
   </div>
 </template>
@@ -49,12 +63,15 @@
 import { ref, onMounted } from 'vue'
 import request from '@/utils/request'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 
 const posts = ref([])
 const loading = ref(false)
 const keyword = ref('')
 const page = ref(1)
 const total = ref(0)
+
+const formatTime = (t) => t ? new Date(t).toLocaleString('zh-CN') : '-'
 
 const loadPosts = async () => {
   loading.value = true
@@ -111,5 +128,15 @@ onMounted(loadPosts)
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+.pagination-wrap {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

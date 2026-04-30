@@ -1,29 +1,31 @@
 <template>
   <div class="category-list">
-    <el-card>
+    <el-card shadow="never">
       <template #header>
         <div class="card-header">
-          <span>分类配置</span>
-          <el-button type="primary" @click="handleAdd">新增分类</el-button>
+          <span class="card-title">分类配置</span>
+          <el-button type="primary" @click="handleAdd">
+            <el-icon><Plus /></el-icon>新增分类
+          </el-button>
         </div>
       </template>
-      <el-table :data="categories" v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80" />
+      <el-table :data="categories" v-loading="loading" stripe>
+        <el-table-column prop="id" label="ID" width="70" align="center" />
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="icon" label="图标" />
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="160" align="center">
           <template #default="{ row }">
-            <el-button size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" plain @click="handleEdit(row)">编辑</el-button>
+            <el-button size="small" type="danger" plain @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑分类' : '新增分类'">
-      <el-form :model="form" label-width="80px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑分类' : '新增分类'" width="420px">
+      <el-form :model="form" label-width="80px" style="padding: 0 10px">
         <el-form-item label="名称">
-          <el-input v-model="form.name" />
+          <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
         <el-form-item label="图标">
           <el-input v-model="form.icon" placeholder="图标URL或标识" />
@@ -41,6 +43,7 @@
 import { ref, onMounted } from 'vue'
 import request from '@/utils/request'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 
 const categories = ref([])
 const loading = ref(false)
@@ -95,3 +98,16 @@ const handleDelete = (row) => {
 
 onMounted(loadCategories)
 </script>
+
+<style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+</style>

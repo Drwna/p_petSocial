@@ -12,7 +12,8 @@
       "Bash(node:*)",
       "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.js -type f)",
       "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend/src -name *.vue -type f)",
-      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.vue -type f)"
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.vue -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin -type f \\\\\\(-name *.css -o -name *.scss -o -name *.sass \\\\\\))"
     ]
   }
 }

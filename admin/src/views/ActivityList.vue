@@ -1,8 +1,8 @@
 <template>
   <div class="activity-list">
-    <el-card>
+    <el-card shadow="never">
       <template #header>
-        <span>活动审核管理</span>
+        <span class="card-title">活动审核管理</span>
       </template>
 
       <el-tabs v-model="activeTab" @tab-change="loadList">
@@ -13,7 +13,7 @@
         <el-tab-pane label="已结束" name="ended" />
       </el-tabs>
 
-      <el-table :data="list" v-loading="loading" style="margin-top: 12px">
+      <el-table :data="list" v-loading="loading" style="margin-top: 12px" stripe>
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="title" label="活动标题" show-overflow-tooltip />
         <el-table-column label="商家" width="140">
@@ -38,10 +38,10 @@
         </el-table-column>
         <el-table-column label="操作" width="220">
           <template #default="{ row }">
-            <el-button size="small" @click="showDetail(row)">详情</el-button>
+            <el-button size="small" plain @click="showDetail(row)">详情</el-button>
             <template v-if="row.status === 'pending'">
-              <el-button size="small" type="success" @click="approve(row)">通过</el-button>
-              <el-button size="small" type="danger" @click="openReject(row)">拒绝</el-button>
+              <el-button size="small" type="success" plain @click="approve(row)">通过</el-button>
+              <el-button size="small" type="danger" plain @click="openReject(row)">拒绝</el-button>
             </template>
           </template>
         </el-table-column>
@@ -152,3 +152,11 @@ const submitReject = async () => {
 
 onMounted(loadList)
 </script>
+
+<style scoped>
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+}
+</style>
