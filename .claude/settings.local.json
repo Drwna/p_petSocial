@@ -9,7 +9,10 @@
       "Bash(npm start:*)",
       "Bash(mysql -u root -p123456 -e \"SHOW INDEX FROM pet_social.topic;\")",
       "Bash(mysql -uroot -p123456 pet_social -e \"SHOW INDEX FROM topic\\\\G\")",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.js -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend/src -name *.vue -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.vue -type f)"
     ]
   }
 }

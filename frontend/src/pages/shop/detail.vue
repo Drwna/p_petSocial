@@ -39,21 +39,29 @@ const redeeming = ref(false);
 const showSheet = ref(false);
 
 onLoad(async ({ id }) => {
-  const res = await getGiftDetail(id);
-  if (res.code === 0) gift.value = res.data;
+  try {
+    const res = await getGiftDetail(id);
+    if (res.code === 0) gift.value = res.data;
+  } catch (e) {
+    uni.showToast({ title: '加载失败', icon: 'none' });
+  }
 });
 
 const redeem = async () => {
   redeeming.value = true;
   try {
-    const res = await redeemGift({ giftId: gift.value.id, address: address.value });
-    if (res.code === 0) {
-      uni.showToast({ title: '兑换成功！' });
-      gift.value.stock--;
-      showSheet.value = false;
+    await redeemGift({ giftId: gift.value.id, address: address.value });
+    uni.showToast({ title: '兑换成功！' });
+    gift.value.stock--;
+    showSheet.value = false;
+    // 更新本地缓存中的积分
+    const userInfo = uni.getStorageSync('userInfo');
+    if (userInfo) {
+      userInfo.points = Math.max(0, (userInfo.points || 0) - gift.value.pointCost);
+      uni.setStorageSync('userInfo', userInfo);
     }
   } catch (e) {
-    uni.showToast({ title: '兑换失败', icon: 'none' });
+    // 请求工具层已弹出具体错误，此处不再重复提示
   } finally {
     redeeming.value = false;
   }

@@ -25,14 +25,18 @@
 
 <script setup>
 import { ref } from 'vue';
-import { onLoad, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app';
+import { onLoad, onShow, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app';
 import { getGiftList } from '@/api/index';
 
 const list = ref([]);
 const loading = ref(false);
 const hasMore = ref(true);
 const page = ref(1);
-const points = ref(uni.getStorageSync('userInfo')?.points || 0);
+const points = ref(0);
+
+const refreshPoints = () => {
+  points.value = uni.getStorageSync('userInfo')?.points || 0;
+};
 
 const load = async (refresh = false) => {
   if (loading.value) return;
@@ -49,6 +53,7 @@ const load = async (refresh = false) => {
 };
 
 onLoad(() => load(true));
+onShow(() => refreshPoints());
 onPullDownRefresh(() => load(true).then(() => uni.stopPullDownRefresh()));
 onReachBottom(() => { if (hasMore.value) { page.value++; load(); } });
 

@@ -366,7 +366,6 @@ export const uploadImages = (filePaths) => {
             if (uploadFileRes.statusCode === 200) {
               try {
                 const data = JSON.parse(uploadFileRes.data);
-                console.log('fuck --->上传成功', data);
                 // 确保返回结构符合预期 { code: 0, data: { urls: [...] } }
                 if (data.code === 0 && data.data && data.data.url) {
                   res(data.data.url);
