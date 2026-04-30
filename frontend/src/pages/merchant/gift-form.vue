@@ -1,30 +1,33 @@
 <template>
   <view class="container">
-    <view class="form-item">
-      <text class="label">礼品名称</text>
-      <input class="input" v-model="form.name" placeholder="请输入礼品名称" />
-    </view>
-    <view class="form-item">
-      <text class="label">所需积分</text>
-      <input class="input" v-model.number="form.pointCost" type="number" placeholder="兑换所需积分" />
-    </view>
-    <view class="form-item">
-      <text class="label">库存数量</text>
-      <input class="input" v-model.number="form.stock" type="number" placeholder="库存数量" />
-    </view>
-    <view class="form-item">
-      <text class="label">礼品图片</text>
-      <view class="upload-area" @click="chooseImage">
-        <image v-if="form.image" :src="form.image" class="preview-img" mode="aspectFill" />
-        <view v-else class="upload-placeholder">
-          <text class="upload-icon">+</text>
-          <text class="upload-text">上传图片（选填）</text>
+    <view class="section-title">{{ form.id ? '编辑礼品' : '发布礼品' }}</view>
+    <view class="form-card">
+      <view class="cell">
+        <text class="cell-label">礼品名称</text>
+        <input class="cell-input" v-model="form.name" placeholder="请输入礼品名称" placeholder-class="ph" />
+      </view>
+      <view class="cell">
+        <text class="cell-label">所需积分</text>
+        <input class="cell-input" v-model.number="form.pointCost" type="number" placeholder="兑换所需积分" placeholder-class="ph" />
+      </view>
+      <view class="cell">
+        <text class="cell-label">库存数量</text>
+        <input class="cell-input" v-model.number="form.stock" type="number" placeholder="库存数量" placeholder-class="ph" />
+      </view>
+      <view class="cell cell-upload">
+        <text class="cell-label">礼品图片</text>
+        <view class="upload-area" @click="chooseImage">
+          <image v-if="form.image" :src="form.image" class="preview-img" mode="aspectFill" />
+          <view v-else class="upload-placeholder">
+            <text class="upload-icon">+</text>
+            <text class="upload-text">上传图片（选填）</text>
+          </view>
         </view>
       </view>
-    </view>
-    <view class="form-item">
-      <text class="label">礼品描述（选填）</text>
-      <textarea class="textarea" v-model="form.description" placeholder="介绍一下这个礼品" />
+      <view class="cell cell-textarea">
+        <text class="cell-label">礼品描述</text>
+        <textarea class="textarea" v-model="form.description" placeholder="介绍一下这个礼品（选填）" placeholder-class="ph" />
+      </view>
     </view>
 
     <button class="submit-btn" :disabled="submitting" @click="submit">
@@ -93,14 +96,69 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.container { padding: 20rpx; background: #f8f8f8; min-height: 100vh; }
-.form-item { background: #fff; border-radius: 12rpx; padding: 24rpx; margin-bottom: 16rpx; }
-.label { font-size: 28rpx; color: #555; display: block; margin-bottom: 12rpx; }
-.input { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; box-sizing: border-box; }
-.textarea { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; min-height: 120rpx; box-sizing: border-box; }
-.upload-area { width: 200rpx; height: 150rpx; border: 2rpx dashed #ccc; border-radius: 10rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.preview-img { width: 200rpx; height: 150rpx; border-radius: 10rpx; }
-.upload-icon { font-size: 48rpx; color: #ccc; }
-.upload-text { font-size: 24rpx; color: #999; }
-.submit-btn { background: #71C5DA; color: #fff; border-radius: 50rpx; margin: 30rpx 0; font-size: 30rpx; height: 90rpx; line-height: 90rpx; }
+.container { padding: 24rpx; background: #f5f5f5; min-height: 100vh; }
+
+.section-title { font-size: 28rpx; color: #999; padding: 0 8rpx 16rpx; }
+
+.form-card { background: #fff; border-radius: 12rpx; overflow: hidden; }
+
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.cell:last-child { border-bottom: none; }
+
+.cell-label {
+  font-size: 28rpx;
+  color: #333;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.cell-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 44rpx;
+}
+
+.cell-textarea { align-items: flex-start; }
+.textarea {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 120rpx;
+  line-height: 1.6;
+}
+
+.cell-upload { align-items: flex-start; }
+.upload-area {
+  width: 180rpx;
+  height: 130rpx;
+  border: 1rpx dashed #ccc;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.preview-img { width: 180rpx; height: 130rpx; border-radius: 8rpx; }
+.upload-icon { font-size: 48rpx; color: #bbb; line-height: 1; }
+.upload-text { font-size: 22rpx; color: #bbb; margin-top: 6rpx; }
+
+.submit-btn {
+  margin-top: 40rpx;
+  background: #71C5DA;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border: none;
+}
+.submit-btn[disabled] { opacity: 0.6; }
+
+.ph { color: #bbb; }
 </style>

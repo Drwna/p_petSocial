@@ -1,49 +1,48 @@
 <template>
   <view class="container">
     <view v-if="status === 'none'">
-      <view class="form-section">
-        <view class="form-title">申请成为商家</view>
-
-        <view class="form-item">
-          <text class="label">商家名称</text>
-          <input class="input" v-model="form.businessName" placeholder="请输入商家名称" />
+      <view class="section-title">申请成为商家</view>
+      <view class="form-card">
+        <view class="cell">
+          <text class="cell-label">商家名称</text>
+          <input class="cell-input" v-model="form.businessName" placeholder="请输入商家名称" placeholder-class="ph" />
         </view>
-        <view class="form-item">
-          <text class="label">联系电话</text>
-          <input class="input" v-model="form.contactPhone" type="number" placeholder="请输入联系电话" />
+        <view class="cell">
+          <text class="cell-label">联系电话</text>
+          <input class="cell-input" v-model="form.contactPhone" type="number" placeholder="请输入联系电话" placeholder-class="ph" />
         </view>
-        <view class="form-item">
-          <text class="label">地址</text>
-          <input class="input" v-model="form.address" placeholder="请输入商家地址" />
+        <view class="cell">
+          <text class="cell-label">地址</text>
+          <input class="cell-input" v-model="form.address" placeholder="请输入商家地址" placeholder-class="ph" />
         </view>
-        <view class="form-item">
-          <text class="label">简介</text>
-          <textarea class="textarea" v-model="form.description" placeholder="介绍一下您的商家（选填）" />
+        <view class="cell cell-textarea">
+          <text class="cell-label">简介</text>
+          <textarea class="textarea" v-model="form.description" placeholder="介绍一下您的商家（选填）" placeholder-class="ph" />
         </view>
-        <view class="form-item">
-          <text class="label">营业执照</text>
+        <view class="cell cell-upload">
+          <text class="cell-label">营业执照</text>
           <view class="upload-area" @click="chooseImage">
             <image v-if="form.licenseImage" :src="form.licenseImage" class="license-img" mode="aspectFill" />
             <view v-else class="upload-placeholder">
               <text class="upload-icon">+</text>
-              <text class="upload-text">上传营业执照</text>
+              <text class="upload-text">上传图片</text>
             </view>
           </view>
         </view>
-
-        <button class="submit-btn" :disabled="submitting" @click="submit">
-          {{ submitting ? '提交中...' : '提交申请' }}
-        </button>
       </view>
+
+      <button class="submit-btn" :disabled="submitting" @click="submit">
+        {{ submitting ? '提交中...' : '提交申请' }}
+      </button>
     </view>
 
     <view v-else class="status-card">
-      <view v-if="status === 'pending'" class="status-pending">
+      <view v-if="status === 'pending'">
         <text class="status-icon">⏳</text>
         <text class="status-title">申请审核中</text>
         <text class="status-desc">管理员将在1-3个工作日内审核您的申请</text>
       </view>
-      <view v-else-if="status === 'approved'" class="status-approved">
+      <view v-else-if="status === 'approved'">
         <text class="status-icon">✅</text>
         <text class="status-title">申请已通过</text>
         <text class="status-desc">您已成为商家，可以发布礼品和活动</text>
@@ -52,11 +51,11 @@
           <button class="action-btn" @click="goActivities">管理活动</button>
         </view>
       </view>
-      <view v-else-if="status === 'rejected'" class="status-rejected">
+      <view v-else-if="status === 'rejected'">
         <text class="status-icon">❌</text>
         <text class="status-title">申请已拒绝</text>
         <text class="status-desc reason">拒绝原因：{{ rejectReason }}</text>
-        <button class="submit-btn" @click="status = 'none'">重新申请</button>
+        <button class="submit-btn" style="margin-top:40rpx" @click="status = 'none'">重新申请</button>
       </view>
     </view>
   </view>
@@ -125,23 +124,87 @@ const goActivities = () => uni.navigateTo({ url: '/pages/merchant/activities' })
 </script>
 
 <style scoped>
-.container { padding: 20rpx; background: #f8f8f8; min-height: 100vh; }
-.form-section { background: #fff; border-radius: 16rpx; padding: 30rpx; }
-.form-title { font-size: 36rpx; font-weight: bold; margin-bottom: 30rpx; color: #333; }
-.form-item { margin-bottom: 24rpx; }
-.label { display: block; font-size: 28rpx; color: #555; margin-bottom: 10rpx; }
-.input { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; box-sizing: border-box; }
-.textarea { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; min-height: 120rpx; box-sizing: border-box; }
-.upload-area { width: 200rpx; height: 150rpx; border: 2rpx dashed #ccc; border-radius: 10rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.license-img { width: 200rpx; height: 150rpx; border-radius: 10rpx; }
-.upload-icon { font-size: 48rpx; color: #ccc; }
-.upload-text { font-size: 24rpx; color: #999; }
-.submit-btn { background: #71C5DA; color: #fff; border-radius: 50rpx; margin-top: 30rpx; font-size: 30rpx; height: 90rpx; line-height: 90rpx; }
-.status-card { background: #fff; border-radius: 16rpx; padding: 60rpx 30rpx; text-align: center; }
-.status-icon { font-size: 80rpx; display: block; margin-bottom: 20rpx; }
-.status-title { font-size: 36rpx; font-weight: bold; display: block; margin-bottom: 16rpx; }
-.status-desc { font-size: 28rpx; color: #666; display: block; }
-.reason { color: #e74c3c; margin-top: 16rpx; }
-.merchant-actions { display: flex; gap: 20rpx; justify-content: center; margin-top: 40rpx; }
-.action-btn { background: #71C5DA; color: #fff; border-radius: 50rpx; font-size: 28rpx; padding: 0 40rpx; height: 80rpx; line-height: 80rpx; }
+.container { padding: 24rpx; background: #f5f5f5; min-height: 100vh; }
+
+.section-title { font-size: 28rpx; color: #999; padding: 0 8rpx 16rpx; }
+
+.form-card { background: #fff; border-radius: 12rpx; overflow: hidden; }
+
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.cell:last-child { border-bottom: none; }
+
+.cell-label {
+  font-size: 28rpx;
+  color: #333;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.cell-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 44rpx;
+}
+
+.cell-textarea { align-items: flex-start; }
+.textarea {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 120rpx;
+  line-height: 1.6;
+}
+
+.cell-upload { align-items: flex-start; }
+.upload-area {
+  width: 180rpx;
+  height: 130rpx;
+  border: 1rpx dashed #ccc;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.license-img { width: 180rpx; height: 130rpx; border-radius: 8rpx; }
+.upload-icon { font-size: 48rpx; color: #bbb; line-height: 1; }
+.upload-text { font-size: 22rpx; color: #bbb; margin-top: 6rpx; }
+
+.submit-btn {
+  margin-top: 40rpx;
+  background: #71C5DA;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border: none;
+}
+.submit-btn[disabled] { opacity: 0.6; }
+
+/* 状态页 */
+.status-card { background: #fff; border-radius: 12rpx; padding: 80rpx 30rpx; text-align: center; }
+.status-icon { font-size: 80rpx; display: block; margin-bottom: 24rpx; }
+.status-title { font-size: 34rpx; font-weight: bold; display: block; margin-bottom: 16rpx; color: #333; }
+.status-desc { font-size: 28rpx; color: #888; display: block; line-height: 1.6; }
+.reason { color: #e74c3c; }
+.merchant-actions { display: flex; gap: 20rpx; justify-content: center; margin-top: 48rpx; }
+.action-btn {
+  background: #71C5DA;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  padding: 0 40rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border: none;
+}
+
+.ph { color: #bbb; }
 </style>

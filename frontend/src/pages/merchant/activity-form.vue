@@ -1,32 +1,35 @@
 <template>
   <view class="container">
-    <view class="form-item">
-      <text class="label">活动标题</text>
-      <input class="input" v-model="form.title" placeholder="请输入活动标题" />
-    </view>
-    <view class="form-item">
-      <text class="label">活动地点</text>
-      <input class="input" v-model="form.location" placeholder="请输入活动地点" />
-    </view>
-    <view class="form-item">
-      <text class="label">开始时间</text>
-      <picker mode="date" :value="form.startDate" @change="onStartDateChange">
-        <view class="picker-val">{{ form.startDate || '请选择日期' }}</view>
-      </picker>
-    </view>
-    <view class="form-item">
-      <text class="label">结束时间</text>
-      <picker mode="date" :value="form.endDate" @change="onEndDateChange">
-        <view class="picker-val">{{ form.endDate || '请选择日期' }}</view>
-      </picker>
-    </view>
-    <view class="form-item">
-      <text class="label">人数上限（留空不限）</text>
-      <input class="input" v-model.number="form.maxParticipants" type="number" placeholder="不限制人数留空" />
-    </view>
-    <view class="form-item">
-      <text class="label">活动描述（选填）</text>
-      <textarea class="textarea" v-model="form.description" placeholder="介绍一下这次活动" />
+    <view class="section-title">发布活动</view>
+    <view class="form-card">
+      <view class="cell">
+        <text class="cell-label">活动标题</text>
+        <input class="cell-input" v-model="form.title" placeholder="请输入活动标题" placeholder-class="ph" />
+      </view>
+      <view class="cell">
+        <text class="cell-label">活动地点</text>
+        <input class="cell-input" v-model="form.location" placeholder="请输入活动地点" placeholder-class="ph" />
+      </view>
+      <view class="cell">
+        <text class="cell-label">开始日期</text>
+        <picker mode="date" :value="form.startDate" @change="e => form.startDate = e.detail.value">
+          <view class="picker-val" :class="{ ph: !form.startDate }">{{ form.startDate || '请选择日期' }}</view>
+        </picker>
+      </view>
+      <view class="cell">
+        <text class="cell-label">结束日期</text>
+        <picker mode="date" :value="form.endDate" @change="e => form.endDate = e.detail.value">
+          <view class="picker-val" :class="{ ph: !form.endDate }">{{ form.endDate || '请选择日期' }}</view>
+        </picker>
+      </view>
+      <view class="cell">
+        <text class="cell-label">人数上限</text>
+        <input class="cell-input" v-model.number="form.maxParticipants" type="number" placeholder="不限制留空" placeholder-class="ph" />
+      </view>
+      <view class="cell cell-textarea">
+        <text class="cell-label">活动描述</text>
+        <textarea class="textarea" v-model="form.description" placeholder="介绍一下这次活动（选填）" placeholder-class="ph" />
+      </view>
     </view>
 
     <button class="submit-btn" :disabled="submitting" @click="submit">
@@ -48,9 +51,6 @@ const form = ref({
   maxParticipants: '',
   description: ''
 });
-
-const onStartDateChange = (e) => { form.value.startDate = e.detail.value; };
-const onEndDateChange = (e) => { form.value.endDate = e.detail.value; };
 
 const submit = async () => {
   const { title, location, startDate, endDate } = form.value;
@@ -80,11 +80,60 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.container { padding: 20rpx; background: #f8f8f8; min-height: 100vh; }
-.form-item { background: #fff; border-radius: 12rpx; padding: 24rpx; margin-bottom: 16rpx; }
-.label { font-size: 28rpx; color: #555; display: block; margin-bottom: 12rpx; }
-.input { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; box-sizing: border-box; }
-.textarea { border: 1rpx solid #e0e0e0; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; width: 100%; min-height: 120rpx; box-sizing: border-box; }
-.picker-val { font-size: 28rpx; color: #333; padding: 10rpx 0; }
-.submit-btn { background: #71C5DA; color: #fff; border-radius: 50rpx; margin: 30rpx 0; font-size: 30rpx; height: 90rpx; line-height: 90rpx; }
+.container { padding: 24rpx; background: #f5f5f5; min-height: 100vh; }
+
+.section-title { font-size: 28rpx; color: #999; padding: 0 8rpx 16rpx; }
+
+.form-card { background: #fff; border-radius: 12rpx; overflow: hidden; }
+
+.cell {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.cell:last-child { border-bottom: none; }
+
+.cell-label {
+  font-size: 28rpx;
+  color: #333;
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.cell-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 44rpx;
+}
+
+.picker-val {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.cell-textarea { align-items: flex-start; }
+.textarea {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  min-height: 120rpx;
+  line-height: 1.6;
+}
+
+.submit-btn {
+  margin-top: 40rpx;
+  background: #71C5DA;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 30rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  border: none;
+}
+.submit-btn[disabled] { opacity: 0.6; }
+
+.ph { color: #bbb; }
 </style>
