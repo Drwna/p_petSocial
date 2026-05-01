@@ -1,5 +1,5 @@
 const express = require('express');
-const { Category } = require('../models');
+const { Category, Post } = require('../models');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -64,8 +64,16 @@ router.post('/delete', auth, async (req, res) => {
     const { id } = req.body;
     const category = await Category.findByPk(id);
     if (!category) return res.status(404).json({ code: 404, msg: '分类不存在' });
+
+    if (category.name === '未分类') {
+      return res.status(400).json({ code: 400, msg: '默认分类不可删除' });
+    }
+
+    const defaultCategory = await Category.findOne({ where: { name: '未分类' } });
+    await Post.update({ categoryId: defaultCategory.id }, { where: { categoryId: id } });
+
     await category.destroy();
-    res.json({ code: 0, msg: '删除成功' });
+    res.json({ code: 0, msg: '删除成功，关联帖子已迁移至"未分类"' });
   } catch (error) {
     res.status(500).json({ code: 500, msg: '操作失败', error: error.message });
   }

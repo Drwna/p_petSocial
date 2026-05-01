@@ -87,12 +87,21 @@ const handleSubmit = async () => {
 }
 
 const handleDelete = (row) => {
-  ElMessageBox.confirm('确定要删除该分类吗？', '警告', { type: 'warning' }).then(async () => {
+  if (row.name === '未分类') {
+    return ElMessage.warning('默认分类不可删除')
+  }
+  ElMessageBox.confirm(
+    '删除后，该分类下的所有帖子将自动迁移至"未分类"，确定继续？',
+    '删除分类',
+    { type: 'warning' }
+  ).then(async () => {
     try {
       await request.post('/category/delete', { id: row.id })
-      ElMessage.success('删除成功')
+      ElMessage.success('删除成功，关联帖子已迁移至"未分类"')
       loadCategories()
-    } catch (e) {}
+    } catch (e) {
+      ElMessage.error(e?.message || '删除失败')
+    }
   })
 }
 

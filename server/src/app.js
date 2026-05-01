@@ -51,6 +51,7 @@ const initDatabase = async () => {
     const categoryCount = await Category.count();
     if (categoryCount === 0) {
       const categories = [
+        { name: '未分类' },
         { name: '日常生活' },
         { name: '搞笑瞬间' },
         { name: '成长记录' },
@@ -58,8 +59,11 @@ const initDatabase = async () => {
         { name: '求助提问' },
         { name: '好物推荐' }
       ];
-      
+
       await Category.bulkCreate(categories);
+    } else {
+      // 保证"未分类"兜底分类始终存在
+      await Category.findOrCreate({ where: { name: '未分类' } });
     }
 
     // 初始化话题数据
