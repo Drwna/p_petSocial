@@ -1,197 +1,174 @@
-# 宠物社交服务器
+# Server — 主后端 API 服务
 
-## 项目简介
+> Express + MySQL + Sequelize，提供 PetSocial 平台所有核心业务接口。
 
-宠物社交服务器是一个为宠物主人提供社交平台的后端服务，支持宠物信息管理、帖子发布、评论、点赞、关注等功能。
+---
 
-## 技术栈
+## 环境要求
 
-- **Node.js**：JavaScript运行时环境
-- **Express**：Web应用框架
-- **MySQL**：关系型数据库
-- **Sequelize**：ORM框架
-- **JWT**：JSON Web Token，用于身份认证
-- **Multer**：文件上传中间件
-- **Cors**：跨域资源共享中间件
-- **Nodemailer**：邮件发送服务
+- Node.js >= 16
+- MySQL 8.0+（本地服务运行中，端口 3306）
 
-## 项目结构
+---
+
+## 快速启动
+
+```bash
+cd server
+npm install
+# 1. 复制并填写环境变量（见下方配置说明）
+cp .env.example .env
+npm start
+# → http://localhost:3001
+```
+
+> 首次启动会自动执行 `sequelize.sync({ alter: true })`，自动建表并插入初始数据（分类、话题、管理员账号）。
+
+---
+
+## ⚠️ 环境变量配置 (.env)
+
+> **必须在启动前完成配置，否则服务无法正常运行。**
+
+```env
+# 服务端口
+PORT=3001
+
+# ── MySQL 数据库 ──────────────────────────────
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_mysql_password      # ← 改为你的 MySQL 密码
+DB_NAME=pet_social                   # 数据库名，首次启动自动创建
+
+# ── JWT 认证 ──────────────────────────────────
+JWT_SECRET=your_jwt_secret_key       # ← 改为强随机字符串（生产环境必须修改）
+JWT_EXPIRES_IN=7d
+
+# ── 邮件服务（QQ SMTP）────────────────────────
+EMAIL_HOST=smtp.qq.com
+EMAIL_PORT=465
+EMAIL_USER=your_qq_email@qq.com      # ← 你的 QQ 邮箱
+EMAIL_PASS=your_email_app_password   # ← QQ 邮箱授权码（非登录密码）
+
+# ── 管理员账号 ────────────────────────────────
+ADMIN_EMAIL=admin@petsocial.com      # ← 初始管理员邮箱
+```
+
+> **QQ 邮箱授权码获取**：登录 QQ 邮箱 → 设置 → 账户 → POP3/SMTP 服务 → 生成授权码。
+
+---
+
+## 目录结构
 
 ```
 server/
 ├── src/
+│   ├── app.js                    # ★ 应用入口，注册路由 + 初始化数据库
 │   ├── config/
-│   │   └── db.js           # 数据库配置
+│   │   └── db.js                 # Sequelize 连接配置
 │   ├── middleware/
-│   │   ├── auth.js         # 身份认证中间件
-│   │   └── upload.js       # 文件上传中间件
-│   ├── models/
-│   │   ├── Account.js      # 账户模型
-│   │   ├── Category.js     # 分类模型
-│   │   ├── Comment.js      # 评论模型
-│   │   ├── Follow.js       # 关注模型
-│   │   ├── Pet.js          # 宠物模型
-│   │   ├── Post.js         # 帖子模型
-│   │   ├── PostLike.js     # 帖子点赞模型
-│   │   ├── VerificationCode.js # 验证码模型
-│   │   └── index.js        # 模型导出
-│   ├── public/
-│   │   └── images/         # 上传的图片存储目录
-│   ├── routes/
-│   │   ├── account.js      # 账户相关路由
-│   │   ├── category.js     # 分类相关路由
-│   │   ├── comment.js      # 评论相关路由
-│   │   ├── follow.js       # 关注相关路由
-│   │   ├── pet.js          # 宠物相关路由
-│   │   ├── post.js         # 帖子相关路由
-│   │   └── upload.js       # 上传相关路由
+│   │   ├── auth.js               # JWT 认证中间件（验证 Bearer Token）
+│   │   └── upload.js             # Multer 文件上传配置
+│   ├── models/                   # Sequelize 数据模型（共 19 个）
+│   │   ├── index.js              # ★ 模型统一导出 + 关联关系定义
+│   │   ├── Account.js            # 用户账号
+│   │   ├── Pet.js                # 宠物档案（用户主体）
+│   │   ├── Post.js               # 帖子
+│   │   ├── Comment.js            # 评论（支持嵌套）
+│   │   ├── Follow.js             # 关注关系
+│   │   ├── PostLike.js           # 点赞
+│   │   ├── PostDislike.js        # 不喜欢
+│   │   ├── Bookmark.js           # 收藏
+│   │   ├── BlockPet.js           # 屏蔽用户
+│   │   ├── Category.js           # 内容分类
+│   │   ├── Topic.js              # 话题/标签
+│   │   ├── PostTopic.js          # 帖子-话题多对多关联
+│   │   ├── PointLog.js           # 积分变动日志
+│   │   ├── Merchant.js           # 商家
+│   │   ├── Gift.js               # 商品/礼品
+│   │   ├── GiftRedemption.js     # 礼品兑换记录
+│   │   ├── Activity.js           # 线下活动
+│   │   ├── ActivityParticipant.js# 活动参与者
+│   │   └── VerificationCode.js   # 邮箱验证码
+│   ├── routes/                   # API 路由（业务逻辑直接写在路由中）
+│   │   ├── account.js            # /api/account
+│   │   ├── pet.js                # /api/pet
+│   │   ├── post.js               # /api/post
+│   │   ├── comment.js            # /api/comment
+│   │   ├── follow.js             # /api/follow
+│   │   ├── category.js           # /api/category
+│   │   ├── topic.js              # /api/topic
+│   │   ├── bookmark.js           # /api/bookmark
+│   │   ├── upload.js             # /api/upload
+│   │   ├── point.js              # /api/point
+│   │   ├── merchant.js           # /api/merchant
+│   │   ├── gift.js               # /api/gift
+│   │   └── activity.js           # /api/activity
 │   ├── utils/
-│   │   ├── emailService.js # 邮件服务
-│   │   └── verificationCode.js # 验证码工具
-│   └── app.js              # 应用入口
-├── .env                    # 环境变量配置
-├── package.json            # 项目依赖配置
-└── README.md               # 项目说明文档
+│   │   ├── emailService.js       # Nodemailer 邮件发送封装
+│   │   └── verificationCode.js   # 验证码生成逻辑
+│   └── public/
+│       └── images/               # 上传图片存储目录（Multer 目标目录）
+├── .env                          # ★ 环境变量（不提交 Git）
+└── package.json
 ```
 
-## 环境配置
+---
 
-1. 安装Node.js（版本14或以上）
-2. 安装MySQL数据库
-3. 创建.env文件，配置以下环境变量：
+## API 路由总览
 
-```env
-PORT=3001
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=pet_social
-JWT_SECRET=your_jwt_secret
-EMAIL_USER=your_email@example.com
-EMAIL_PASSWORD=your_email_password
+| 路由前缀 | 路由文件 | 主要功能 |
+|----------|----------|----------|
+| `/api/account` | routes/account.js | 注册、登录、发验证码、重置密码 |
+| `/api/pet` | routes/pet.js | 宠物档案 CRUD、屏蔽用户 |
+| `/api/post` | routes/post.js | 帖子 CRUD、点赞、不喜欢、不感兴趣 |
+| `/api/comment` | routes/comment.js | 评论发布、删除、嵌套回复 |
+| `/api/follow` | routes/follow.js | 关注/取消关注、关注列表 |
+| `/api/category` | routes/category.js | 分类管理 |
+| `/api/topic` | routes/topic.js | 话题管理、帖子-话题关联 |
+| `/api/bookmark` | routes/bookmark.js | 收藏/取消收藏 |
+| `/api/upload` | routes/upload.js | 图片上传（返回图片 URL） |
+| `/api/point` | routes/point.js | 积分查询、日志、兑换 |
+| `/api/merchant` | routes/merchant.js | 商家申请、审核、管理 |
+| `/api/gift` | routes/gift.js | 礼品上架、下架 |
+| `/api/activity` | routes/activity.js | 活动发布、报名、审核 |
+
+---
+
+## 认证机制
+
+- 需要登录的接口通过 `auth.js` 中间件验证
+- 请求头格式：`Authorization: Bearer <token>`
+- Token 有效期 **7 天**，过期返回 `code: 401`
+
+---
+
+## 数据模型关系
+
+```
+Account  (1) ──→ (1) Pet                 用户账号 ↔ 宠物档案
+Pet      (1) ──→ (N) Post                宠物发帖
+Post     (N) ──→ (N) Topic               帖子 ↔ 话题（通过 PostTopic）
+Post     (1) ──→ (N) Comment             帖子评论
+Pet      (N) ──→ (N) Pet                 关注关系（自关联 Follow）
+Account  (1) ──→ (1) Merchant            商家账号
+Merchant (1) ──→ (N) Gift                商家礼品
+Merchant (1) ──→ (N) Activity            商家活动
 ```
 
-## 安装和运行
+---
 
-1. 安装依赖：
+## 文件上传
 
-```bash
-npm install
-```
+- 图片保存至 `src/public/images/`
+- 访问地址：`http://localhost:3001/images/<文件名>`
+- 支持格式：jpg、jpeg、png、gif、webp
 
-2. 启动服务器：
+---
 
-```bash
-npm start
-```
+## 注意事项
 
-服务器将在配置的端口上运行，默认端口为3001。
-
-## API接口文档
-
-### 账户相关接口
-
-- `POST /api/account/register` - 用户注册
-- `POST /api/account/login` - 用户登录
-- `POST /api/account/send-code` - 发送验证码
-- `POST /api/account/verify-code` - 验证验证码
-- `POST /api/account/reset-password` - 重置密码
-
-### 宠物相关接口
-
-- `GET /api/pet/profile` - 获取当前宠物主页信息
-- `GET /api/pet/profile/:petId` - 获取指定宠物主页信息
-- `GET /api/pet/posts` - 获取当前宠物发布的帖子
-- `GET /api/pet/:petId/posts` - 获取指定宠物发布的帖子
-- `POST /api/pet/update` - 更新宠物信息
-
-### 帖子相关接口
-
-- `POST /api/post/create` - 发布帖子
-- `POST /api/post/delete` - 删除帖子
-- `GET /api/post/list` - 获取帖子列表（首页）
-- `GET /api/post/:id` - 获取帖子详情
-- `POST /api/post/like` - 点赞/取消点赞
-
-### 评论相关接口
-
-- `POST /api/comment/create` - 评论帖子
-- `POST /api/comment/delete` - 删除评论
-- `GET /api/comment/list` - 获取帖子评论列表
-
-### 关注相关接口
-
-- `POST /api/follow` - 关注/取消关注
-- `GET /api/follow/followers` - 获取粉丝列表
-- `GET /api/follow/following` - 获取关注列表
-
-### 上传相关接口
-
-- `POST /api/upload/image` - 上传图片
-
-### 分类相关接口
-
-- `GET /api/category/list` - 获取分类列表
-
-## 数据库设计
-
-### 主要表结构
-
-1. **pet** - 宠物表
-   - id: 主键
-   - petName: 宠物名称
-   - petType: 宠物类型
-   - gender: 性别
-   - avatar: 头像
-   - intro: 简介
-   - birthday: 生日
-   - followCount: 关注数
-   - fansCount: 粉丝数
-   - createTime: 创建时间
-
-2. **post** - 帖子表
-   - id: 主键
-   - petId: 发布者宠物ID
-   - content: 内容
-   - images: 图片数组
-   - categoryId: 分类ID
-   - createTime: 创建时间
-   - isDeleted: 是否删除
-   - deletedAt: 删除时间
-
-3. **comment** - 评论表
-   - id: 主键
-   - postId: 帖子ID
-   - petId: 评论者宠物ID
-   - content: 内容
-   - createTime: 创建时间
-   - isDeleted: 是否删除
-   - deletedAt: 删除时间
-
-4. **post_like** - 帖子点赞表
-   - id: 主键
-   - postId: 帖子ID
-   - petId: 点赞者宠物ID
-   - createTime: 创建时间
-
-5. **follow** - 关注表
-   - id: 主键
-   - followerPetId: 粉丝宠物ID
-   - followingPetId: 被关注宠物ID
-   - createTime: 创建时间
-
-6. **category** - 分类表
-   - id: 主键
-   - name: 分类名称
-
-## 开发注意事项
-
-1. 数据库表结构变更时，Sequelize会自动更新表结构（通过`alter: true`选项）
-2. 所有需要身份认证的接口都需要在请求头中添加`Authorization: Bearer <token>`
-3. 图片上传后会存储在`src/public/images`目录下，访问路径为`/public/images/filename`
-4. 软删除机制：删除操作不会直接删除数据，而是将`isDeleted`字段设为1，并记录`deletedAt`时间
-
-## 许可证
-
-ISC License
+1. 数据库表结构变更时，Sequelize 会自动更新表结构（`alter: true`）
+2. 软删除机制：删除操作将 `isDeleted` 设为 1，记录 `deletedAt` 时间，数据不会真正删除
+3. `.env` 文件包含敏感信息，不要提交到版本控制

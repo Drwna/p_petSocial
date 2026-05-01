@@ -1,101 +1,127 @@
-# PetSocial Frontend
+# Frontend — 跨平台移动端
 
-PetSocial 是一个基于 UniApp 开发的宠物社交应用前端项目，支持多平台（H5、微信小程序、App）运行。
+> UniApp + Vue 3，一套代码支持 H5、微信小程序、Android/iOS App。
 
-## 📋 项目简介
+---
 
-这是一个专注于宠物爱好者的社交平台，用户可以：
-- 创建和管理宠物档案
-- 发布图文动态
-- 浏览不同分类的宠物内容
-- 与其他用户互动（点赞、评论、关注）
+## 环境要求
 
-## 🛠 技术栈
+- Node.js >= 16
+- 启动前确保 `server/`（端口 3001）已运行
 
-- **框架**: [UniApp](https://uniapp.dcloud.io/) (Vue 3)
-- **开发工具**: HBuilderX 或 VS Code
-- **样式**: SCSS
-- **API 请求**: 基于 `uni.request` 的 Promise 封装
+---
 
-## 📂 目录结构
+## 快速启动
+
+```bash
+cd frontend
+npm install
+
+npm run dev:h5           # H5 浏览器调试 → http://localhost:5173（或随机端口）
+npm run dev:mp-weixin    # 微信小程序（需安装微信开发者工具）
+npm run dev:app          # App 调试
+
+# 生产构建
+npm run build:h5
+npm run build:mp-weixin
+```
+
+---
+
+## ⚠️ 关键配置
+
+### 后端地址配置
+
+> **真机调试时必须修改为电脑局域网 IP，否则手机无法访问。**
+
+修改文件：`src/utils/request.js`
+
+```javascript
+// 开发环境
+const BASE_URL = 'http://localhost:3001'
+
+// 真机调试（改为电脑局域网 IP）
+// const BASE_URL = 'http://192.168.x.x:3001'
+```
+
+同步修改：`src/api/index.js` 中的 `BASE_URL`
+
+---
+
+## 目录结构
 
 ```
 frontend/
 ├── src/
-│   ├── api/             # API 接口定义
-│   ├── components/      # 公共组件 (如 PostCard)
-│   ├── pages/           # 页面文件
-│   │   ├── index/       # 首页 (支持左右滑动分类)
-│   │   ├── login/       # 登录页
-│   │   ├── register/    # 注册页
-│   │   ├── post/        # 帖子相关 (发布、详情)
-│   │   ├── profile/     # 个人主页 & 他人主页
-│   │   ├── user/        # 用户资料编辑
-│   │   └── follow/      # 关注/粉丝列表
-│   ├── static/          # 静态资源 (图片、图标)
-│   ├── utils/           # 工具函数 (request.js 等)
-│   ├── App.vue          # 应用入口
-│   ├── main.js          # Vue 初始化
-│   ├── manifest.json    # 应用配置
-│   ├── pages.json       # 页面路由与 Tabbar 配置
-│   └── uni.scss         # 全局样式变量
-└── README.md
+│   ├── App.vue                   # 根组件
+│   ├── main.js                   # Vue 应用入口
+│   ├── manifest.json             # ★ UniApp 应用配置（AppID、平台权限等）
+│   ├── pages.json                # ★ 页面路由 + Tabbar 配置（新增页面必须在此注册）
+│   ├── uni.scss                  # 全局样式变量
+│   ├── pages/                    # 页面组件
+│   │   ├── index/                # 首页（Feed 流，支持分类左右滑动）
+│   │   ├── baike/                # 宠物百科
+│   │   ├── login/                # 登录
+│   │   ├── register/             # 注册
+│   │   ├── profile/              # 个人主页
+│   │   ├── user/                 # 用户管理（编辑资料、屏蔽列表）
+│   │   ├── post/                 # 帖子（创建、详情）
+│   │   ├── follow/               # 关注 / 粉丝列表
+│   │   ├── points/               # 积分记录
+│   │   ├── shop/                 # 积分商城（列表、详情、兑换记录）
+│   │   ├── merchant/             # 商家中心（申请、礼品管理、活动管理）
+│   │   ├── activity/             # 线下活动（列表、详情）
+│   │   └── discuss/              # 讨论页
+│   ├── components/
+│   │   └── PostCard.vue          # 帖子卡片公共组件
+│   ├── api/
+│   │   └── index.js              # ★ 所有业务 API 接口封装
+│   ├── utils/
+│   │   └── request.js            # ★ HTTP 请求工具（uni.request 封装）
+│   └── static/
+│       └── tabbar/               # 底部导航栏图标资源
+├── vite.config.js
+└── package.json
 ```
 
-## 🚀 快速开始
+---
 
-### 1. 环境准备
-- 安装 [HBuilderX](https://www.dcloud.io/hbuilderx.html) (推荐) 或 Node.js 环境。
-- 确保后端服务已启动 (默认地址 `http://localhost:3001`)。
+## 底部导航栏（Tabbar）
 
-### 2. 运行项目
+| 序号 | 标签 | 页面路径 |
+|------|------|----------|
+| 1 | 首页 | pages/index/index |
+| 2 | 百科 | pages/baike/baike |
+| 3 | 发布 | pages/post/create |
+| 4 | 商城 | pages/shop/list |
+| 5 | 我的 | pages/profile/profile |
 
-#### 使用 HBuilderX:
-1. 打开 HBuilderX，导入 `frontend` 目录。
-2. 菜单栏点击 **运行** -> **运行到浏览器** 或 **运行到小程序模拟器**。
+---
 
-#### 使用 CLI (如果已配置):
-```bash
-npm install
-npm run dev:h5
-# 或
-npm run dev:mp-weixin
-```
+## HTTP 请求机制
 
-### 3. 配置后端地址
-如果后端地址不是本地 `3001` 端口，请修改 `src/utils/request.js` 和 `src/api/index.js` 中的 `BASE_URL`。
+`src/utils/request.js` 封装要点：
 
-### 4. 本地真机调试
+- 基于 `uni.request` 封装为 Promise
+- 自动从 `localStorage` 读取 JWT Token 并注入 `Authorization` 请求头
+- 统一响应格式：`code=0` 为成功，`code=401` 自动清除 Token 并跳转登录页
 
-请查看修改 `src/utils/request.js` 和 `src/api/index.js` 中的 `BASE_URL`。
+---
 
-## ✨ 核心功能
+## 新增页面步骤
 
-1.  **认证系统**
-    *   手机号验证码登录/注册。
-    *   多账号切换支持。
-    *   Token 自动管理与拦截。
+1. 在 `src/pages/<模块>/` 下创建 `.vue` 文件
+2. 在 `src/pages.json` 的 `pages` 数组中注册路由
+3. 在 `src/api/index.js` 中添加对应 API 方法
 
-2.  **内容流**
-    *   首页 Swiper 左右滑动切换分类。
-    *   下拉刷新与上拉加载更多。
-    *   图片懒加载与预览。
+---
 
-3.  **互动社交**
-    *   点赞与取消点赞 (实时更新)。
-    *   评论发布与删除 (支持权限控制)。
-    *   关注/取关用户。
+## 平台兼容性
 
-4.  **发布功能**
-    *   多图上传 (并发上传优化)。
-    *   发布前预览与删除图片。
-
-## 📱 兼容性
-
-- H5 (Chrome, Safari, etc.)
-- 微信小程序
-- Android / iOS App (通过 UniApp 打包)
-
-## 📄 许可证
-
-MIT
+| 平台 | 支持状态 |
+|------|----------|
+| H5（Chrome/Safari） | 支持 |
+| 微信小程序 | 支持 |
+| Android App | 支持（UniApp 打包） |
+| iOS App | 支持（UniApp 打包） |
+| 支付宝/百度/抖音小程序 | 构建脚本已配置 |

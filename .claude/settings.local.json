@@ -13,7 +13,18 @@
       "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.js -type f)",
       "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend/src -name *.vue -type f)",
       "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin/src -name *.vue -type f)",
-      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin -type f \\\\\\(-name *.css -o -name *.scss -o -name *.sass \\\\\\))"
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin -type f \\\\\\(-name *.css -o -name *.scss -o -name *.sass \\\\\\))",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/server -not -path */node_modules/* -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend -not -path */node_modules/* -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/admin -not -path */node_modules/* -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/dataDB -not -path */node_modules/* -type f)",
+      "Bash(find /c/Users/34172/Desktop/partTimeJob/ju/petSocial/frontend -maxdepth 2 -type f \\\\\\(-name *.vue -o -name *.js -o -name vite.config.* -o -name uniapp.config.* -o -name manifest.json \\\\\\) -not -path */dist/* -not -path */node_modules/*)",
+      "Bash(wc -l /c/Users/34172/Desktop/partTimeJob/ju/petSocial/server/src/routes/*.js)",
+      "Bash(grep -E \"\\\\.\\(md|txt|env|example|yml|yaml\\)$\")",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/34172/Desktop/partTimeJob/ju/petSocial/**)",
+      "Bash(done)"
     ]
   }
 }

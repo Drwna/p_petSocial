@@ -1,79 +1,108 @@
-# 🐾 宠物百科数据管理系统 (dataDB)
+# DataDB — 宠物百科微服务
 
-这是一个基于 Node.js 和 MongoDB 构建的宠物百科数据管理平台，主要用于自建和管理宠物百科数据库。项目包含一个提供完整 CRUD 功能的 RESTful API 后端，以及一个基于 Vue 3 + TailwindCSS 构建的现代化可视化管理前端。
+> Express + MongoDB + Mongoose，独立的宠物品种信息管理服务。
 
-## ✨ 核心功能
+---
 
-*   **数据展示**：列表形式直观展示宠物基本信息（包含图片缩略图、中英文名、寿命、价格等）。
-*   **快捷搜索**：支持根据宠物名称进行模糊/精确搜索。
-*   **可视化表单管理**：支持通过直观的 UI 表单新增、编辑、删除宠物百科数据。
-*   **JSON 快速导入**：在新增数据时，支持直接粘贴 JSON 数据（带有智能格式修复与容错功能），一键自动解析并填充表单，极大提高录入效率。
+## 环境要求
 
-## 🛠️ 技术栈
+- Node.js >= 16
+- MongoDB（本地运行，端口 27017）
 
-*   **后端**：Node.js, Express, Mongoose (MongoDB), CORS, dotenv
-*   **前端**：Vue 3 (CDN), TailwindCSS (CDN), Axios
-*   **数据库**：MongoDB
+---
 
-## 📦 数据结构
+## 快速启动
 
-每条宠物数据包含以下字段：
-*   `name` (String): 宠物名称（必填）
-*   `engname` (String): 英文名称
-*   `nation` (String): 原产地
-*   `life` (String): 寿命（如：10-14年）
-*   `price` (String): 价格区间
-*   `pic` (String): 宠物图片URL
-*   **数值评分 (1-10)**：`sticky` (粘人), `shout` (叫声), `friendly` (友好), `lint` (掉毛), `beauty` (美容), `odour` (体味), `saliva` (口水), `active` (运动量)
-*   **详细描述 (长文本)**：`message` (简介), `feed` (喂养建议), `relative` (体型特征/优缺点), `pick` (挑选建议)
-
-## 🚀 快速开始
-
-### 1. 环境要求
-*   [Node.js](https://nodejs.org/) (推荐 v14+ 版本)
-*   [MongoDB](https://www.mongodb.com/) (本地运行或远程集群均可)
-
-### 2. 安装依赖
-进入项目目录并安装依赖包：
 ```bash
 cd dataDB
 npm install
+# 确认 .env 配置正确
+npm start
+# → http://localhost:3005
 ```
 
-### 3. 配置环境变量
-项目根目录下已包含 `.env` 文件，你可以根据实际情况修改 MongoDB 连接地址和端口号：
+启动成功后控制台输出：
+```
+MongoDB连接成功
+服务器运行在 http://localhost:3005
+```
+
+> 打开 `http://localhost:3005` 可访问内置的可视化管理页面。
+
+---
+
+## ⚠️ 环境变量配置 (.env)
+
 ```env
 PORT=3005
-MONGODB_URI=mongodb://127.0.0.1:27017/petEncyclopedia
+MONGODB_URI=mongodb://127.0.0.1:27017/petEncyclopedia   # ← 改为实际 MongoDB 地址
 ```
 
-### 4. 启动服务
-```bash
-npm start
-# 或者使用 npm run dev
+> 如使用远程 MongoDB（如 Atlas），替换为对应连接字符串：
+> `MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/petEncyclopedia`
+
+---
+
+## 目录结构
+
+```
+dataDB/
+├── index.js                      # ★ 应用主文件（Express + 所有路由内联）
+├── models/
+│   └── Pet.js                    # Mongoose Pet 数据模型
+├── public/
+│   └── index.html                # 可视化管理前端页面（Vue 3 + TailwindCSS CDN）
+├── .env                          # ★ 环境变量
+└── package.json
 ```
 
-### 5. 访问系统
-启动成功后，控制台会输出：
-```
-✅ MongoDB连接成功
-🚀 服务器运行在 http://localhost:3005
-```
-此时，在浏览器中打开 **http://localhost:3005** 即可访问前端管理页面。
+---
 
-## 📖 API 接口文档
+## API 接口
 
 基础路径：`http://localhost:3005/api`
 
-| 方法 | 路径 | 描述 | 参数 |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/pets` | 获取所有宠物数据 | 无 |
-| `GET` | `/pets/search` | 根据名称搜索宠物 | `?name=关键字` |
+| 方法 | 路径 | 功能 | 参数 |
+|------|------|------|------|
+| `GET` | `/pets` | 获取所有宠物列表 | 无 |
+| `GET` | `/pets/search` | 按名称模糊搜索 | `?name=关键字` |
 | `GET` | `/pets/:id` | 获取单个宠物详情 | 路径参数 `id` |
-| `POST` | `/pets` | 添加新的宠物数据 | Body: 宠物 JSON 数据 |
-| `PUT` | `/pets/:id` | 更新宠物数据 | 路径参数 `id`, Body: 更新数据 |
-| `DELETE` | `/pets/:id` | 删除宠物数据 | 路径参数 `id` |
-| `POST` | `/pets/init-test` | 快捷注入测试数据 | 无 |
+| `POST` | `/pets` | 添加新宠物 | Body: 宠物 JSON |
+| `PUT` | `/pets/:id` | 更新宠物数据 | 路径参数 `id` + Body |
+| `DELETE` | `/pets/:id` | 删除宠物 | 路径参数 `id` |
+| `POST` | `/pets/init-test` | 注入测试数据 | 无 |
 
 ---
-*本项目为 petSocial 宠物社区的底层数据支撑模块。*
+
+## 数据模型字段
+
+文件：`models/Pet.js`
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | String | 是 | 宠物名称 |
+| `engname` | String | 否 | 英文名称 |
+| `nation` | String | 否 | 原产地 |
+| `life` | String | 否 | 寿命（如：10-14年） |
+| `price` | String | 否 | 价格区间 |
+| `pic` | String | 否 | 图片 URL |
+| `sticky` | Number | 否 | 粘人程度（1-10） |
+| `shout` | Number | 否 | 叫声频率（1-10） |
+| `friendly` | Number | 否 | 友善度（1-10） |
+| `lint` | Number | 否 | 掉毛程度（1-10） |
+| `beauty` | Number | 否 | 外观评分（1-10） |
+| `odour` | Number | 否 | 体味（1-10） |
+| `saliva` | Number | 否 | 流口水（1-10） |
+| `active` | Number | 否 | 运动量（1-10） |
+| `message` | String | 否 | 品种简介 |
+| `feed` | String | 否 | 喂养建议 |
+| `relative` | String | 否 | 体型特征 / 优缺点 |
+| `pick` | String | 否 | 挑选建议 |
+
+---
+
+## 与其他模块的关系
+
+- `frontend/` 的宠物百科页面（`pages/baike/`）调用此服务的 API
+- 与主后端 `server/`（端口 3001）完全独立，使用不同数据库（MongoDB vs MySQL）
+- 前端通过不同 BASE_URL 区分调用：主服务 3001，百科服务 3005
